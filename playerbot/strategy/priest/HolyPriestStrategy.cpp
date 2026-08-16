@@ -395,27 +395,49 @@ void HolyPriestStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     PriestStrategy::InitCombatTriggers(triggers);
 
+    // Emergency single-target healing.
     triggers.push_back(new TriggerNode(
         "party member critical health",
-        NextAction::array(0, new NextAction("power word: shield on party", ACTION_CRITICAL_HEAL + 1),
-                             new NextAction("flash heal on party", ACTION_CRITICAL_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("power word: shield on party", ACTION_CRITICAL_HEAL + 1),
+            new NextAction("flash heal on party", ACTION_CRITICAL_HEAL),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member low health",
-        NextAction::array(0, new NextAction("power word: shield on party", ACTION_MEDIUM_HEAL + 2),
-                             new NextAction("greater heal on party", ACTION_MEDIUM_HEAL + 1), NULL)));
+        NextAction::array(0,
+            new NextAction("power word: shield on party", ACTION_MEDIUM_HEAL + 2),
+            new NextAction("greater heal on party", ACTION_MEDIUM_HEAL + 1),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member medium health",
-        NextAction::array(0, new NextAction("greater heal on party", ACTION_MEDIUM_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("greater heal on party", ACTION_MEDIUM_HEAL),
+            NULL)));
 
+    // Safe raid state: maintain Renew + PoM on the tank,
+    // then continuously cast rank-1 Greater Heal.
     triggers.push_back(new TriggerNode(
-        "party member almost full health",
-        NextAction::array(0, new NextAction("renew on party", ACTION_LIGHT_HEAL), NULL)));
+        "holy priest maintenance",
+        NextAction::array(0,
+            new NextAction("renew on tank", 80.0f),
+            new NextAction("prayer of mending on tank", 78.0f),
+            new NextAction("greater heal rank 1 on tank", 25.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "binding heal",
-        NextAction::array(0, new NextAction("binding heal", ACTION_LIGHT_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("binding heal", ACTION_LIGHT_HEAL),
+            NULL)));
+
+    // Shadowfiend at exactly < 50% mana.
+    triggers.push_back(new TriggerNode(
+        "mana below 50",
+        NextAction::array(0,
+            new NextAction("shadowfiend", 55.0f),
+            NULL)));
 }
 
 void HolyPriestStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -509,13 +531,12 @@ void HolyPriestAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers
 {
     PriestAoeStrategy::InitCombatTriggers(triggers);
 
+    // Circle of Healing is the primary raid-healing action.
     triggers.push_back(new TriggerNode(
         "medium aoe heal",
-        NextAction::array(0, new NextAction("prayer of mending", ACTION_MEDIUM_HEAL + 1), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "medium aoe heal",
-        NextAction::array(0, new NextAction("circle of healing", ACTION_MEDIUM_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("circle of healing", 84.0f),
+            NULL)));
 }
 
 void HolyPriestAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)

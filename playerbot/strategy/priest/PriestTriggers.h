@@ -31,6 +31,42 @@ namespace ai
     DEBUFF_TRIGGER(StarshardsTrigger, "starshards");
 
     BOOST_TRIGGER_A(ShadowfiendTrigger, "shadowfiend");
+
+    class PriestManaBelow50Trigger : public Trigger
+    {
+    public:
+        PriestManaBelow50Trigger(PlayerbotAI* ai) :
+            Trigger(ai, "mana below 50") {}
+
+        bool IsActive() override
+        {
+            return AI_VALUE2(bool, "has mana", "self target") &&
+                   AI_VALUE2(uint8, "mana", "self target") < 50;
+        }
+    };
+
+    class HolyPriestMaintenanceTrigger : public Trigger
+    {
+    public:
+        HolyPriestMaintenanceTrigger(PlayerbotAI* ai) :
+            Trigger(ai, "holy priest maintenance") {}
+
+        bool IsActive() override
+        {
+            Unit* lowestTarget =
+                AI_VALUE(Unit*, "party member to heal");
+
+            if (!lowestTarget)
+                return false;
+
+            return
+                AI_VALUE2(uint8, "health", "self target") >=
+                    sPlayerbotAIConfig.mediumHealth &&
+                lowestTarget->GetHealthPercent() >=
+                    sPlayerbotAIConfig.mediumHealth;
+        }
+    };
+
     CAN_CAST_TRIGGER(MindBlastTrigger, "mind blast");
     CAN_CAST_TRIGGER(SmiteTrigger, "smite");
 

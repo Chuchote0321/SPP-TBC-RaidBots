@@ -803,19 +803,19 @@ void PriestCureStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 
     triggers.push_back(new TriggerNode(
         "dispel magic",
-        NextAction::array(0, new NextAction("dispel magic", ACTION_DISPEL + 3), NULL)));
+        NextAction::array(0, new NextAction("dispel magic", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "dispel magic on party",
-        NextAction::array(0, new NextAction("dispel magic on party", ACTION_DISPEL + 2), NULL)));
+        NextAction::array(0, new NextAction("dispel magic on party", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cure disease",
-        NextAction::array(0, new NextAction("abolish disease", ACTION_DISPEL + 1), NULL)));
+        NextAction::array(0, new NextAction("abolish disease", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member cure disease",
-        NextAction::array(0, new NextAction("abolish disease on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("abolish disease on party", 79.0f), NULL)));
 }
 
 void PriestCureStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -824,19 +824,19 @@ void PriestCureStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers
 
     triggers.push_back(new TriggerNode(
         "dispel magic",
-        NextAction::array(0, new NextAction("dispel magic", ACTION_DISPEL + 3), NULL)));
+        NextAction::array(0, new NextAction("dispel magic", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "dispel magic on party",
-        NextAction::array(0, new NextAction("dispel magic on party", ACTION_DISPEL + 2), NULL)));
+        NextAction::array(0, new NextAction("dispel magic on party", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cure disease",
-        NextAction::array(0, new NextAction("abolish disease", ACTION_DISPEL + 1), NULL)));
+        NextAction::array(0, new NextAction("abolish disease", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member cure disease",
-        NextAction::array(0, new NextAction("abolish disease on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("abolish disease on party", 79.0f), NULL)));
 }
 
 void PriestCurePvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)

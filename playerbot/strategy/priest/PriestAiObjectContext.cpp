@@ -205,6 +205,8 @@ namespace ai
                 creators["silence"] = [](PlayerbotAI* ai) { return new SilenceTrigger(ai); };
                 creators["silence on enemy healer"] = [](PlayerbotAI* ai) { return new SilenceEnemyHealerTrigger(ai); };
                 creators["shadowfiend"] = [](PlayerbotAI* ai) { return new ShadowfiendTrigger(ai); };
+                creators["mana below 50"] = [](PlayerbotAI* ai) { return new PriestManaBelow50Trigger(ai); };
+                creators["holy priest maintenance"] = [](PlayerbotAI* ai) { return new HolyPriestMaintenanceTrigger(ai); };
                 creators["mind blast"] = [](PlayerbotAI* ai) { return new MindBlastTrigger(ai); };
                 creators["smite"] = [](PlayerbotAI* ai) { return new SmiteTrigger(ai); };
                 creators["holy fire"] = [](PlayerbotAI* ai) { return new HolyFireTrigger(ai); };
@@ -236,6 +238,9 @@ namespace ai
                 creators["power word: shield on party"] = [](PlayerbotAI* ai) { return new CastPowerWordShieldOnPartyAction(ai); };
                 creators["renew"] = [](PlayerbotAI* ai) { return new CastRenewAction(ai); };
                 creators["renew on party"] = [](PlayerbotAI* ai) { return new CastRenewOnPartyAction(ai); };
+                creators["renew on tank"] = [](PlayerbotAI* ai) { return new CastRenewOnTankAction(ai); };
+                creators["prayer of mending on tank"] = [](PlayerbotAI* ai) { return new CastPrayerOfMendingOnTankAction(ai); };
+                creators["greater heal rank 1 on tank"] = [](PlayerbotAI* ai) { return new CastGreaterHealRank1OnTankAction(ai); };
                 creators["greater heal"] = [](PlayerbotAI* ai) { return new CastGreaterHealAction(ai); };
                 creators["greater heal on party"] = [](PlayerbotAI* ai) { return new CastGreaterHealOnPartyAction(ai); };
                 creators["heal"] = [](PlayerbotAI* ai) { return new CastHealAction(ai); };

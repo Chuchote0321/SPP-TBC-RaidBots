@@ -39,6 +39,81 @@ namespace ai
     HEAL_PARTY_ACTION(CastFlashHealOnPartyAction, "flash heal");
     HEAL_ACTION(CastRenewAction, "renew");
     HEAL_HOT_PARTY_ACTION(CastRenewOnPartyAction, "renew");
+
+    class CastPriestSpellOnTankAction : public CastSpellAction
+    {
+    public:
+        CastPriestSpellOnTankAction(
+            PlayerbotAI* ai,
+            std::string spell,
+            std::string actionName,
+            std::string targetAura)
+            : CastSpellAction(ai, spell),
+              actionName(actionName),
+              targetAura(targetAura) {}
+
+        std::string getName() override
+        {
+            return actionName;
+        }
+
+    protected:
+        std::string GetTargetName() override
+        {
+            return "party tank without aura";
+        }
+
+        std::string GetTargetQualifier() override
+        {
+            return targetAura;
+        }
+
+        std::string GetReachActionName() override
+        {
+            return "reach party member to heal";
+        }
+
+    private:
+        std::string actionName;
+        std::string targetAura;
+    };
+
+    class CastRenewOnTankAction :
+        public CastPriestSpellOnTankAction
+    {
+    public:
+        CastRenewOnTankAction(PlayerbotAI* ai) :
+            CastPriestSpellOnTankAction(
+                ai,
+                "renew",
+                "renew on tank",
+                "renew") {}
+    };
+
+    class CastPrayerOfMendingOnTankAction :
+        public CastPriestSpellOnTankAction
+    {
+    public:
+        CastPrayerOfMendingOnTankAction(PlayerbotAI* ai) :
+            CastPriestSpellOnTankAction(
+                ai,
+                "prayer of mending",
+                "prayer of mending on tank",
+                "prayer of mending") {}
+    };
+
+    class CastGreaterHealRank1OnTankAction :
+        public CastPriestSpellOnTankAction
+    {
+    public:
+        CastGreaterHealRank1OnTankAction(PlayerbotAI* ai) :
+            CastPriestSpellOnTankAction(
+                ai,
+                "greater heal(1)",
+                "greater heal rank 1 on tank",
+                "greater heal") {}
+    };
+
     // holy 2.4.3
     HEAL_PARTY_ACTION(CastPrayerOfMendingAction, "prayer of mending");
     HEAL_PARTY_ACTION(CastBindingHealAction, "binding heal");
