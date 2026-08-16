@@ -20,6 +20,43 @@ VehicleSpellIdValue::VehicleSpellIdValue(PlayerbotAI* ai) : CalculatedValue<uint
 uint32 SpellIdValue::Calculate()
 {
     std::string namepart = qualifier;
+    int requestedRank = 0;
+
+    // Optional explicit rank qualifier:
+    // "greater heal(1)" -> spell "greater heal", rank 1
+    size_t rankOpen = namepart.rfind('(');
+    if (rankOpen != std::string::npos &&
+        !namepart.empty() &&
+        namepart.back() == ')')
+    {
+        std::string rankText =
+            namepart.substr(rankOpen + 1, namepart.size() - rankOpen - 2);
+
+        bool numericRank = !rankText.empty();
+
+        for (char c : rankText)
+        {
+            if (!isdigit(static_cast<unsigned char>(c)))
+            {
+                numericRank = false;
+                break;
+            }
+        }
+
+        if (numericRank)
+        {
+            requestedRank = atoi(rankText.c_str());
+
+            namepart.erase(rankOpen);
+
+            while (!namepart.empty() &&
+                   isspace(static_cast<unsigned char>(namepart.back())))
+            {
+                namepart.pop_back();
+            }
+        }
+    }
+
     ItemIds itemIds = ChatHelper::parseItems(namepart);
 
     PlayerbotChatHandler handler(bot);
@@ -124,6 +161,46 @@ uint32 SpellIdValue::Calculate()
     }
 
     if (spellIds.empty()) return 0;
+
+    // Explicit rank always takes precedence over the global mana-save
+    // downranking logic.
+    if (requestedRank > 0)
+    {
+        for (uint32 spellId : spellIds)
+        {
+            const SpellEntry* pSpellInfo =
+                sServerFacade.LookupSpellInfo(spellId);
+
+            if (!pSpellInfo)
+                continue;
+
+            std::string spellRank =
+                pSpellInfo->Rank[loc] ? pSpellInfo->Rank[loc] : "";
+
+            if (spellRank.empty())
+                spellRank =
+                    pSpellInfo->Rank[0] ? pSpellInfo->Rank[0] : "";
+
+            size_t i = 0;
+
+            for (; i < spellRank.length(); ++i)
+            {
+                if (isdigit(static_cast<unsigned char>(spellRank[i])))
+                    break;
+            }
+
+            if (i == spellRank.length())
+                continue;
+
+            int rankId = atoi(spellRank.substr(i).c_str());
+
+            if (rankId == requestedRank)
+                return spellId;
+        }
+
+        // An explicit rank was requested but the bot does not know it.
+        return 0;
+    }
 
     int saveMana = (int) round(AI_VALUE(double, "mana save level"));
     int rank = 1;
