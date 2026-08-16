@@ -462,6 +462,23 @@ namespace ai
         DivineFavorTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "divine favor") {}
     };
 
+    class HolyPaladinTankInjuredTrigger : public Trigger
+    {
+    public:
+        HolyPaladinTankInjuredTrigger(PlayerbotAI* ai) :
+            Trigger(ai, "holy paladin tank injured") {}
+
+        bool IsActive() override
+        {
+            Unit* tank =
+                AI_VALUE2(Unit*, "party tank without aura", "holy light");
+
+            return tank &&
+                   tank->GetHealthPercent() <
+                       sPlayerbotAIConfig.almostFullHealth;
+        }
+    };
+
     class TurnUndeadTrigger : public HasCcTargetTrigger
     {
     public:

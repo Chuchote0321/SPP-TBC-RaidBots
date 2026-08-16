@@ -477,6 +477,36 @@ namespace ai
         CastHolyLightOnPartyAction(PlayerbotAI* ai) : HealPartyMemberAction(ai, "holy light") {}
     };
 
+    class CastHolyLightOnTankAction : public CastHealingSpellAction
+    {
+    public:
+        CastHolyLightOnTankAction(PlayerbotAI* ai) :
+            CastHealingSpellAction(ai, "holy light") {}
+
+        std::string getName() override
+        {
+            return "holy light on tank";
+        }
+
+    protected:
+        std::string GetTargetName() override
+        {
+            return "party tank without aura";
+        }
+
+        std::string GetTargetQualifier() override
+        {
+            // Holy Light has no persistent aura, therefore this
+            // generic value resolves an alive group tank.
+            return "holy light";
+        }
+
+        std::string GetReachActionName() override
+        {
+            return "reach party member to heal";
+        }
+    };
+
     class CastFlashOfLightAction : public CastHealingSpellAction
     {
     public:

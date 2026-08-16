@@ -817,35 +817,35 @@ void PaladinCureStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 
     triggers.push_back(new TriggerNode(
         "rooted",
-        NextAction::array(0, new NextAction("blessing of freedom", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("blessing of freedom", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member rooted",
-        NextAction::array(0, new NextAction("blessing of freedom on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("blessing of freedom on party", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cleanse cure disease",
-        NextAction::array(0, new NextAction("cleanse disease", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cleanse disease", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cleanse party member cure disease",
-        NextAction::array(0, new NextAction("cleanse disease on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cleanse disease on party", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cleanse cure poison",
-        NextAction::array(0, new NextAction("cleanse poison", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cleanse poison", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cleanse party member cure poison",
-        NextAction::array(0, new NextAction("cleanse poison on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cleanse poison on party", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cleanse cure magic",
-        NextAction::array(0, new NextAction("cleanse magic", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cleanse magic", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cleanse party member cure magic",
-        NextAction::array(0, new NextAction("cleanse magic on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cleanse magic on party", 79.0f), NULL)));
 }
 
 void PaladinCureStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -854,35 +854,35 @@ void PaladinCureStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& trigger
 
     triggers.push_back(new TriggerNode(
         "rooted",
-        NextAction::array(0, new NextAction("blessing of freedom", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("blessing of freedom", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member rooted",
-        NextAction::array(0, new NextAction("blessing of freedom on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("blessing of freedom on party", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cleanse cure disease",
-        NextAction::array(0, new NextAction("cleanse disease", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cleanse disease", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cleanse party member cure disease",
-        NextAction::array(0, new NextAction("cleanse disease on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cleanse disease on party", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cleanse cure poison",
-        NextAction::array(0, new NextAction("cleanse poison", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cleanse poison", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cleanse party member cure poison",
-        NextAction::array(0, new NextAction("cleanse poison on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cleanse poison on party", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cleanse cure magic",
-        NextAction::array(0, new NextAction("cleanse magic", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cleanse magic", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cleanse party member cure magic",
-        NextAction::array(0, new NextAction("cleanse magic on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cleanse magic on party", 79.0f), NULL)));
 }
 
 void PaladinCurePvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)

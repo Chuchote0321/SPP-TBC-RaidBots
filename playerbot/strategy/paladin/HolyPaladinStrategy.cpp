@@ -520,62 +520,83 @@ void HolyPaladinStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     PaladinStrategy::InitCombatTriggers(triggers);
 
+    // Emergency tools remain above the normal healing rotation.
     triggers.push_back(new TriggerNode(
         "party member critical health",
-        NextAction::array(0, new NextAction("lay on hands on party", ACTION_CRITICAL_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("lay on hands on party", 88.0f),
+            new NextAction("holy light on party", 86.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "protect party member",
-        NextAction::array(0, new NextAction("blessing of protection on party", ACTION_CRITICAL_HEAL), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "party member low health",
-        NextAction::array(0, new NextAction("divine favor", ACTION_MEDIUM_HEAL + 6), 
-                             new NextAction("holy shock on party", ACTION_MEDIUM_HEAL + 5), 
-                             new NextAction("holy light on party", ACTION_MEDIUM_HEAL + 4), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "low health",
-        NextAction::array(0, new NextAction("divine favor", ACTION_MEDIUM_HEAL + 3), 
-                             new NextAction("holy shock", ACTION_MEDIUM_HEAL + 2), 
-                             new NextAction("holy light", ACTION_MEDIUM_HEAL + 1), NULL)));
+        NextAction::array(0,
+            new NextAction("blessing of protection on party", 87.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "critical health",
-        NextAction::array(0, new NextAction("divine shield", ACTION_EMERGENCY + 1),
-            new NextAction("holy light", ACTION_EMERGENCY), NULL)));
+        NextAction::array(0,
+            new NextAction("divine shield", 88.0f),
+            new NextAction("holy light", 86.0f),
+            NULL)));
 
+    // Main TBC raid-healing rule:
+    // Holy Light is the primary tank heal.
     triggers.push_back(new TriggerNode(
-        "low health",
-        NextAction::array(0, new NextAction("holy light", ACTION_MEDIUM_HEAL), NULL)));
+        "holy paladin tank injured",
+        NextAction::array(0,
+            new NextAction("holy light on tank", 84.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member low health",
-        NextAction::array(0, new NextAction("holy light on party", ACTION_MEDIUM_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("holy light on party", 82.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
-        "medium health",
-        NextAction::array(0, new NextAction("flash of light", ACTION_MEDIUM_HEAL), NULL)));
+        "low health",
+        NextAction::array(0,
+            new NextAction("holy light", 81.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member medium health",
-        NextAction::array(0, new NextAction("flash of light on party", ACTION_MEDIUM_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("holy light on party", 79.0f),
+            NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "medium health",
+        NextAction::array(0,
+            new NextAction("holy light", 78.0f),
+            NULL)));
+
+    // Flash of Light is reserved for light topping.
+    triggers.push_back(new TriggerNode(
+        "party member almost full health",
+        NextAction::array(0,
+            new NextAction("flash of light on party", 66.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "almost full health",
-        NextAction::array(0, new NextAction("flash of light", ACTION_LIGHT_HEAL), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "party member almost full health",
-        NextAction::array(0, new NextAction("flash of light on party", ACTION_LIGHT_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("flash of light", 65.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "seal",
-        NextAction::array(0, new NextAction("seal of light", ACTION_NORMAL + 2), NULL)));
+        NextAction::array(0,
+            new NextAction("seal of light", ACTION_NORMAL + 2),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "enemy is close",
-        NextAction::array(0, new NextAction("judgement", ACTION_NORMAL), NULL)));
+        NextAction::array(0,
+            new NextAction("judgement", ACTION_NORMAL),
+            NULL)));
 }
 
 void HolyPaladinStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -583,28 +604,46 @@ void HolyPaladinStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& trigger
     PaladinStrategy::InitNonCombatTriggers(triggers);
 
     triggers.push_back(new TriggerNode(
+        "holy paladin tank injured",
+        NextAction::array(0,
+            new NextAction("holy light on tank", ACTION_HIGH + 2),
+            NULL)));
+
+    triggers.push_back(new TriggerNode(
         "low health",
-        NextAction::array(0, new NextAction("holy light", ACTION_MEDIUM_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("holy light", ACTION_HIGH + 1),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member low health",
-        NextAction::array(0, new NextAction("holy light on party", ACTION_MEDIUM_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("holy light on party", ACTION_HIGH + 1),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "medium health",
-        NextAction::array(0, new NextAction("flash of light", ACTION_MEDIUM_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("holy light", ACTION_HIGH),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member medium health",
-        NextAction::array(0, new NextAction("flash of light on party", ACTION_MEDIUM_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("holy light on party", ACTION_HIGH),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "almost full health",
-        NextAction::array(0, new NextAction("flash of light", ACTION_LIGHT_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("flash of light", ACTION_NORMAL),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member almost full health",
-        NextAction::array(0, new NextAction("flash of light on party", ACTION_LIGHT_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("flash of light on party", ACTION_NORMAL),
+            NULL)));
 }
 
 void HolyPaladinStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)

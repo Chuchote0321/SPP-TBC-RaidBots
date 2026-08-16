@@ -291,6 +291,7 @@ namespace ai
                 creators["hammer of justice on enemy healer"] = [](PlayerbotAI* ai) { return new HammerOfJusticeEnemyHealerTrigger(ai); };
                 creators["hammer of justice on snare target"] = [](PlayerbotAI* ai) { return new HammerOfJusticeSnareTrigger(ai); };
                 creators["divine favor"] = [](PlayerbotAI* ai) { return new DivineFavorTrigger(ai); };
+                creators["holy paladin tank injured"] = [](PlayerbotAI* ai) { return new HolyPaladinTankInjuredTrigger(ai); };
                 creators["turn undead"] = [](PlayerbotAI* ai) { return new TurnUndeadTrigger(ai); };
                 creators["avenger's shield"] = [](PlayerbotAI* ai) { return new AvengerShieldTrigger(ai); };
                 creators["consecration"] = [](PlayerbotAI* ai) { return new ConsecrationTrigger(ai); };
@@ -392,6 +393,7 @@ namespace ai
                 creators["flash of light on party"] = [](PlayerbotAI* ai) { return new CastFlashOfLightOnPartyAction(ai); };
                 creators["holy light"] = [](PlayerbotAI* ai) { return new CastHolyLightAction(ai); };
                 creators["holy light on party"] = [](PlayerbotAI* ai) { return new CastHolyLightOnPartyAction(ai); };
+                creators["holy light on tank"] = [](PlayerbotAI* ai) { return new CastHolyLightOnTankAction(ai); };
                 creators["lay on hands"] = [](PlayerbotAI* ai) { return new CastLayOnHandsAction(ai); };
                 creators["lay on hands on party"] = [](PlayerbotAI* ai) { return new CastLayOnHandsOnPartyAction(ai); };
                 creators["judgement of justice"] = [](PlayerbotAI* ai) { return new CastJudgementOfJusticeAction(ai); };
