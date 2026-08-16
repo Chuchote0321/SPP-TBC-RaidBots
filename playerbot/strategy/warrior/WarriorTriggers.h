@@ -82,6 +82,46 @@ namespace ai
         }
     };
 
+    class ArmsSunderArmorTrigger : public Trigger
+    {
+    public:
+        ArmsSunderArmorTrigger(PlayerbotAI* ai) :
+            Trigger(ai, "arms sunder armor") {}
+
+        bool IsActive() override
+        {
+            Unit* target =
+                AI_VALUE(Unit*, "current target");
+
+            if (!target || target->IsDead())
+                return false;
+
+            // Rogue Expose Armor takes over the armor-reduction slot.
+            if (ai->HasAura("expose armor", target, true))
+                return false;
+
+            uint32 sunderId =
+                AI_VALUE2(uint32, "spell id", "sunder armor");
+
+            if (!sunderId || !bot->IsSpellReady(sunderId))
+                return false;
+
+            Aura* aura =
+                ai->GetAura(sunderId, target);
+
+            if (!aura)
+                return true;
+
+            uint32 stacks =
+                aura->GetHolder()->GetStackAmount();
+
+            if (stacks < 5)
+                return true;
+
+            return aura->GetHolder()->GetAuraDuration() < 6000;
+        }
+    };
+
     class BattleShoutTrigger : public Trigger
     {
     public:

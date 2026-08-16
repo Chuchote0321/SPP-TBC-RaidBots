@@ -144,7 +144,7 @@ namespace ai
                 creators["berserker stance"] = [](PlayerbotAI* ai) { return new BerserkerStanceTrigger(ai); };
                 creators["shield block"] = [](PlayerbotAI* ai) { return new ShieldBlockTrigger(ai); };
                 creators["shield slam"] = [](PlayerbotAI* ai) { return new ShieldSlamAvailableTrigger(ai); };
-                creators["protection sunder armor below 5"] = [](PlayerbotAI* ai) { return new ProtectionSunderArmorFiveStackTrigger(ai); };
+                creators["protection sunder armor below 5"] = [](PlayerbotAI* ai) { return new ProtectionSunderArmorFiveStackTrigger(ai); };                creators["arms sunder armor"] = [](PlayerbotAI* ai) { return new ArmsSunderArmorTrigger(ai); };
                 creators["sunder armor"] = [](PlayerbotAI* ai) { return new SunderArmorDebuffTrigger(ai); };
                 creators["demoralizing shout"] = [](PlayerbotAI* ai) { return new DemoralizingShoutDebuffTrigger(ai); };
                 creators["devastate"] = [](PlayerbotAI* ai) { return new DevastateAvailableTrigger(ai); };
@@ -216,7 +216,7 @@ namespace ai
                 creators["revenge"] = [](PlayerbotAI* ai) { return new CastRevengeAction(ai); };
                 creators["slam"] = [](PlayerbotAI* ai) { return new CastSlamAction(ai); };
                 creators["shield slam"] = [](PlayerbotAI* ai) { return new CastShieldSlamAction(ai); };
-                creators["disarm"] = [](PlayerbotAI* ai) { return new CastDisarmAction(ai); };
+                creators["disarm"] = [](PlayerbotAI* ai) { return new CastDisarmAction(ai); };                creators["arms sunder armor"] = [](PlayerbotAI* ai) { return new CastArmsSunderArmorAction(ai); };
                 creators["sunder armor"] = [](PlayerbotAI* ai) { return new CastSunderArmorAction(ai); };
                 creators["last stand"] = [](PlayerbotAI* ai) { return new CastLastStandAction(ai); };
                 creators["shockwave"] = [](PlayerbotAI* ai) { return new CastShockwaveAction(ai); };

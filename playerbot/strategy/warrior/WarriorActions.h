@@ -107,6 +107,52 @@ namespace ai
         }
     };
 
+    class CastArmsSunderArmorAction : public CastMeleeDebuffSpellAction
+    {
+    public:
+        CastArmsSunderArmorAction(PlayerbotAI* ai) :
+            CastMeleeDebuffSpellAction(ai, "sunder armor")
+        {
+            range = ATTACK_DISTANCE;
+        }
+
+        bool isUseful() override
+        {
+            Unit* target = GetTarget();
+
+            if (!target || target->IsDead())
+                return false;
+
+            // Improved Expose Armor and ordinary Expose Armor use
+            // the same Expose Armor aura family. Once the rogue
+            // applies it, Arms immediately stops spending GCDs
+            // on Sunder Armor.
+            if (ai->HasAura("expose armor", target, true))
+                return false;
+
+            uint32 sunderId =
+                AI_VALUE2(uint32, "spell id", "sunder armor");
+
+            if (!sunderId)
+                return false;
+
+            Aura* aura = ai->GetAura(sunderId, target);
+
+            if (!aura)
+                return true;
+
+            uint32 stacks =
+                aura->GetHolder()->GetStackAmount();
+
+            if (stacks < 5)
+                return true;
+
+            // Keep the temporary opener armor debuff alive only
+            // while waiting for the rogue's Expose Armor.
+            return aura->GetHolder()->GetAuraDuration() < 6000;
+        }
+    };
+
     class CastSunderArmorAction : public CastMeleeDebuffSpellAction
     {
     public:
