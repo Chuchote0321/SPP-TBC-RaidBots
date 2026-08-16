@@ -589,7 +589,23 @@ namespace ai
 		virtual bool IsActive() override;
 	};
 
-	class MediumManaTrigger : public Trigger
+	class ManaBelowTrigger : public Trigger
+    {
+    public:
+        ManaBelowTrigger(PlayerbotAI* ai, uint8 threshold, std::string name)
+            : Trigger(ai, name), threshold(threshold) {}
+
+        bool IsActive() override
+        {
+            return AI_VALUE2(bool, "has mana", "self target") &&
+                   AI_VALUE2(uint8, "mana", "self target") < threshold;
+        }
+
+    private:
+        uint8 threshold;
+    };
+
+    class MediumManaTrigger : public Trigger
 	{
 	public:
 		MediumManaTrigger(PlayerbotAI* ai) : Trigger(ai, "medium mana") {}

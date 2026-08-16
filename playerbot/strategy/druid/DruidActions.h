@@ -589,6 +589,13 @@ namespace ai
         std::string GetTargetName() override { return "party tank without lifebloom"; }
     };
 
+    class CastLifebloomOnPartyAction : public HealHotPartyMemberAction
+    {
+    public:
+        explicit CastLifebloomOnPartyAction(PlayerbotAI* ai)
+            : HealHotPartyMemberAction(ai, "lifebloom") {}
+    };
+
     class UpdateDruidPveStrategiesAction : public UpdateStrategyDependenciesAction
     {
     public:

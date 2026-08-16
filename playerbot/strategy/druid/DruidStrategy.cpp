@@ -717,11 +717,11 @@ void DruidCureStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 
     triggers.push_back(new TriggerNode(
         "remove curse",
-        NextAction::array(0, new NextAction("remove curse", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("remove curse", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member remove curse",
-        NextAction::array(0, new NextAction("remove curse on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("remove curse on party", 79.0f), NULL)));
 }
 
 void DruidCureStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -738,11 +738,11 @@ void DruidCureStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 
     triggers.push_back(new TriggerNode(
         "remove curse",
-        NextAction::array(0, new NextAction("remove curse", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("remove curse", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member remove curse",
-        NextAction::array(0, new NextAction("remove curse on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("remove curse on party", 79.0f), NULL)));
 }
 
 void DruidCurePvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)

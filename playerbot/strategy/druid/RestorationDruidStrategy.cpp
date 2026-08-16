@@ -425,53 +425,50 @@ void RestorationDruidStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigg
 {
     DruidStrategy::InitCombatTriggers(triggers);
 
+    // Battle resurrection
     triggers.push_back(new TriggerNode(
         "rebirth",
         NextAction::array(0, new NextAction("rebirth", ACTION_EMERGENCY), NULL)));
 
-    triggers.push_back(new TriggerNode(
-        "critical health",
-        NextAction::array(0, new NextAction("regrowth", ACTION_CRITICAL_HEAL + 1),
-                             new NextAction("healing touch", ACTION_CRITICAL_HEAL), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "party member critical health",
-        NextAction::array(0, new NextAction("regrowth on party", ACTION_CRITICAL_HEAL + 1),
-                             new NextAction("healing touch on party", ACTION_CRITICAL_HEAL), NULL)));
-
+    // Maintain Lifebloom on the tank.
+    // Existing LifebloomTankTrigger handles stacks and near-expiry refresh.
     triggers.push_back(new TriggerNode(
         "lifebloom",
-        NextAction::array(0, new NextAction("lifebloom", ACTION_MEDIUM_HEAL + 1), NULL)));
+        NextAction::array(0, new NextAction("lifebloom", 84.0f), NULL)));
 
+    // HOT-oriented raid healing
     triggers.push_back(new TriggerNode(
-        "low health",
-        NextAction::array(0, new NextAction("regrowth", ACTION_MEDIUM_HEAL), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "party member low health",
-        NextAction::array(0, new NextAction("regrowth on party", ACTION_MEDIUM_HEAL), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "medium aoe heal",
-        NextAction::array(0, new NextAction("tranquility", ACTION_MEDIUM_HEAL + 2), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "medium health",
-        NextAction::array(0, new NextAction("regrowth", ACTION_MEDIUM_HEAL + 1), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "party member medium health",
-        NextAction::array(0, new NextAction("regrowth on party", ACTION_MEDIUM_HEAL), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "almost full health",
-        NextAction::array(0, new NextAction("rejuvenation", ACTION_LIGHT_HEAL + 1), NULL)));
+        "party member almost full health",
+        NextAction::array(0, new NextAction("rejuvenation on party", 76.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member almost full health",
-        NextAction::array(0, new NextAction("rejuvenation on party", ACTION_LIGHT_HEAL), NULL)));
-}
+        NextAction::array(0, new NextAction("regrowth on party", 74.0f), NULL)));
 
+    // Spread one Lifebloom to an injured party member.
+    // HealHotPartyMemberAction prevents pointless HOT recasting.
+    triggers.push_back(new TriggerNode(
+        "party member medium health",
+        NextAction::array(0, new NextAction("lifebloom on party", 66.0f), NULL)));
+
+    // Critical healing: Regrowth only. No Healing Touch.
+    triggers.push_back(new TriggerNode(
+        "party member critical health",
+        NextAction::array(0,
+            new NextAction("regrowth on party", ACTION_CRITICAL_HEAL + 1),
+            NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "critical health",
+        NextAction::array(0,
+            new NextAction("regrowth", ACTION_CRITICAL_HEAL),
+            NULL)));
+
+    // Exact Innervate threshold: mana < 30%.
+    triggers.push_back(new TriggerNode(
+        "mana below 30",
+        NextAction::array(0, new NextAction("innervate", 55.0f), NULL)));
+}
 void RestorationDruidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     DruidStrategy::InitNonCombatTriggers(triggers);

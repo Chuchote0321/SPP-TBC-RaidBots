@@ -238,6 +238,7 @@ namespace ai
                 creators["rebirth"] = [](PlayerbotAI* ai) { return new RebirthTrigger(ai); };
                 creators["innervate"] = [](PlayerbotAI* ai) { return new InnervateTrigger(ai); };
                 creators["lifebloom"] = [](PlayerbotAI* ai) { return new LifebloomTankTrigger(ai); };
+                creators["mana below 30"] = [](PlayerbotAI* ai) { return new ManaBelowTrigger(ai, 30, "mana below 30"); };
                 creators["clearcasting"] = [](PlayerbotAI* ai) { return new ClearcastingTrigger(ai); };
             }
         };
@@ -329,6 +330,7 @@ namespace ai
                 creators["update pvp strats"] = [](PlayerbotAI* ai) { return new UpdateDruidPvpStrategiesAction(ai); };
                 creators["update raid strats"] = [](PlayerbotAI* ai) { return new UpdateDruidRaidStrategiesAction(ai); };
                 creators["lifebloom"] = [](PlayerbotAI* ai) { return new CastLifebloomAction(ai); };
+                creators["lifebloom on party"] = [](PlayerbotAI* ai) { return new CastLifebloomOnPartyAction(ai); };
             }
         };
     };
