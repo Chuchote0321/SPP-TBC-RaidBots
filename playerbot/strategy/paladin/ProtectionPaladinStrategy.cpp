@@ -565,43 +565,72 @@ NextAction** ProtectionPaladinStrategy::GetDefaultCombatActions()
 
 void ProtectionPaladinStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
-    PaladinStrategy::InitCombatTriggers(triggers);  
+    PaladinStrategy::InitCombatTriggers(triggers);
 
+    // A raid tank must never keep Salvation.
     triggers.push_back(new TriggerNode(
         "has blessing of salvation",
-        NextAction::array(0, new NextAction("remove blessing of salvation", ACTION_EMERGENCY), NULL)));
+        NextAction::array(0,
+            new NextAction("remove blessing of salvation", ACTION_EMERGENCY),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "has greater blessing of salvation",
-        NextAction::array(0, new NextAction("remove greater blessing of salvation", ACTION_EMERGENCY), NULL)));
+        NextAction::array(0,
+            new NextAction("remove greater blessing of salvation", ACTION_EMERGENCY),
+            NULL)));
 
+    // Existing action-node fallback resolves the TBC taunt path.
     triggers.push_back(new TriggerNode(
         "lose aggro",
-        NextAction::array(0, new NextAction("righteous defense", ACTION_PASSTROUGH), NULL)));
+        NextAction::array(0,
+            new NextAction("hand of reckoning", ACTION_PASSTROUGH),
+            NULL)));
 
+    // Protect endangered raid members when appropriate.
     triggers.push_back(new TriggerNode(
         "protect party member",
-        NextAction::array(0, new NextAction("blessing of protection on party", ACTION_CRITICAL_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("blessing of protection on party", ACTION_CRITICAL_HEAL),
+            NULL)));
 
+    // Core TBC protection rotation.
     triggers.push_back(new TriggerNode(
         "holy shield",
-        NextAction::array(0, new NextAction("holy shield", ACTION_HIGH + 3), NULL)));
+        NextAction::array(0,
+            new NextAction("holy shield", 84.0f),
+            NULL)));
 
+    // Consecration is part of the normal tank threat cycle,
+    // not only an AOE-only tool.
     triggers.push_back(new TriggerNode(
-        "low mana",
-        NextAction::array(0, new NextAction("seal of wisdom", ACTION_HIGH + 1), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "exorcism",
-        NextAction::array(0, new NextAction("exorcism", ACTION_NORMAL + 3), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "seal",
-        NextAction::array(0, new NextAction("seal of vengeance", ACTION_NORMAL + 2), NULL)));
+        "consecration",
+        NextAction::array(0,
+            new NextAction("consecration", 82.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "judgement",
-        NextAction::array(0, new NextAction("judgement", ACTION_NORMAL + 1), NULL)));
+        NextAction::array(0,
+            new NextAction("judgement", 81.0f),
+            NULL)));
+
+    // Maintain the primary tanking seal.
+    // Do not automatically replace it with Seal of Wisdom
+    // merely because mana reaches a medium threshold.
+    triggers.push_back(new TriggerNode(
+        "seal",
+        NextAction::array(0,
+            new NextAction("seal of vengeance", 80.0f),
+            NULL)));
+
+    // Useful against valid undead/demon targets, but never
+    // ahead of the core mitigation/threat cycle.
+    triggers.push_back(new TriggerNode(
+        "exorcism",
+        NextAction::array(0,
+            new NextAction("exorcism", 60.0f),
+            NULL)));
 }
 
 void ProtectionPaladinStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -711,22 +740,19 @@ void ProtectionPaladinRaidStrategy::InitDeadTriggers(std::list<TriggerNode*>& tr
 void ProtectionPaladinAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     PaladinAoeStrategy::InitCombatTriggers(triggers);
+
+    // Stable TBC multi-target threat: Consecration.
+    triggers.push_back(new TriggerNode(
+        "melee light aoe",
+        NextAction::array(0,
+            new NextAction("consecration", 83.0f),
+            NULL)));
+
     triggers.push_back(new TriggerNode(
         "consecration",
-        NextAction::array(0, new NextAction("consecration", ACTION_HIGH + 4), NULL)));
-
-    /*triggers.push_back(new TriggerNode(
-        "melee light aoe",
-        NextAction::array(0, new NextAction("oil of immolation", ACTION_HIGH), NULL)));
-    */
-    triggers.push_back(new TriggerNode(
-        "melee light aoe",
-        NextAction::array(0, new NextAction("consecration", ACTION_HIGH + 1), NULL)));
-
-    /*triggers.push_back(new TriggerNode(
-        "avenger's shield",
-        NextAction::array(0, new NextAction("avenger's shield", ACTION_HIGH), NULL)));
-    */
+        NextAction::array(0,
+            new NextAction("consecration", 82.0f),
+            NULL)));
 }
 
 void ProtectionPaladinAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -773,6 +799,14 @@ void ProtectionPaladinAoeRaidStrategy::InitNonCombatTriggers(std::list<TriggerNo
 void ProtectionPaladinBuffStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     PaladinBuffStrategy::InitCombatTriggers(triggers);
+
+    // Righteous Fury is mandatory for a raid tank and must
+    // be restored immediately if removed during combat.
+    triggers.push_back(new TriggerNode(
+        "righteous fury",
+        NextAction::array(0,
+            new NextAction("righteous fury", 85.0f),
+            NULL)));
 }
 
 void ProtectionPaladinBuffStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
