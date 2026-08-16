@@ -15,6 +15,7 @@ namespace ai
     DEBUFF_TRIGGER(MortalStrikeDebuffTrigger, "mortal strike");
     DEBUFF_ENEMY_TRIGGER(RendDebuffOnAttackerTrigger, "rend");
     CAN_CAST_TRIGGER(DevastateAvailableTrigger, "devastate");
+    CAN_CAST_TRIGGER(ShieldSlamAvailableTrigger, "shield slam");
     CAN_CAST_TRIGGER(RevengeAvailableTrigger, "revenge");
     CAN_CAST_TRIGGER(OverpowerAvailableTrigger, "overpower");
     BUFF_TRIGGER(RampageAvailableTrigger, "rampage");
@@ -43,6 +44,43 @@ namespace ai
     HAS_AURA_TRIGGER(SuddenDeathTrigger, "sudden death");
     HAS_AURA_TRIGGER(SlamInstantTrigger, "slam!");
     HAS_AURA_TRIGGER(TasteForBloodTrigger, "taste for blood");
+
+    class ProtectionSunderArmorFiveStackTrigger : public Trigger
+    {
+    public:
+        ProtectionSunderArmorFiveStackTrigger(PlayerbotAI* ai) :
+            Trigger(ai, "protection sunder armor below 5") {}
+
+        bool IsActive() override
+        {
+            Unit* target = AI_VALUE(Unit*, "current target");
+
+            if (!target || target->IsDead())
+                return false;
+
+            uint32 spellId =
+                AI_VALUE2(uint32, "spell id", "sunder armor");
+
+            if (!spellId)
+                return false;
+
+            Aura* aura = ai->GetAura(spellId, target);
+
+            // No Sunder yet.
+            if (!aura)
+                return true;
+
+            uint32 stacks =
+                aura->GetHolder()->GetStackAmount();
+
+            // Build to five stacks.
+            if (stacks < 5)
+                return true;
+
+            // Refresh before it expires.
+            return aura->GetHolder()->GetAuraDuration() < 6000;
+        }
+    };
 
     class BattleShoutTrigger : public Trigger
     {

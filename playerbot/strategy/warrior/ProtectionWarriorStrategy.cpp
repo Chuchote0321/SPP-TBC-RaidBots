@@ -452,81 +452,125 @@ void ProtectionWarriorStrategy::InitCombatTriggers(std::list<TriggerNode*>& trig
 {
     WarriorStrategy::InitCombatTriggers(triggers);
 
+    // Emergency survival.
     triggers.push_back(new TriggerNode(
         "critical health",
-        NextAction::array(0, new NextAction("last stand", ACTION_EMERGENCY + 2), NULL)));
+        NextAction::array(0,
+            new NextAction("last stand", ACTION_EMERGENCY + 2),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "critical health",
-        NextAction::array(0, new NextAction("shield wall", ACTION_EMERGENCY + 1), NULL)));
+        NextAction::array(0,
+            new NextAction("shield wall", ACTION_EMERGENCY + 1),
+            NULL)));
 
+    // A raid tank must never keep Salvation.
     triggers.push_back(new TriggerNode(
         "has blessing of salvation",
-        NextAction::array(0, new NextAction("remove blessing of salvation", ACTION_EMERGENCY), NULL)));
+        NextAction::array(0,
+            new NextAction("remove blessing of salvation", ACTION_EMERGENCY),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "has greater blessing of salvation",
-        NextAction::array(0, new NextAction("remove greater blessing of salvation", ACTION_EMERGENCY), NULL)));
+        NextAction::array(0,
+            new NextAction("remove greater blessing of salvation", ACTION_EMERGENCY),
+            NULL)));
 
+    // Protect endangered raid members.
     triggers.push_back(new TriggerNode(
         "protect party member",
-        NextAction::array(0, new NextAction("intervene", ACTION_EMERGENCY), NULL)));
+        NextAction::array(0,
+            new NextAction("intervene", ACTION_EMERGENCY),
+            NULL)));
 
-    //triggers.push_back(new TriggerNode(
-        //"enemy out of melee",
-        //NextAction::array(0, new NextAction("heroic throw", ACTION_MOVE + 8), new NextAction("charge", ACTION_MOVE + 7), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "intercept and rage",
-        NextAction::array(0, new NextAction("berserker stance", ACTION_MOVE + 6), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "intercept and rage",
-        NextAction::array(0, new NextAction("intercept", ACTION_MOVE + 5), NULL)));
-
+    // Immediate aggro recovery.
     triggers.push_back(new TriggerNode(
         "lose aggro",
-        NextAction::array(0, new NextAction("taunt", ACTION_PASSTROUGH), NULL)));
+        NextAction::array(0,
+            new NextAction("taunt", ACTION_PASSTROUGH),
+            NULL)));
 
+    // Reactive spell mitigation.
     triggers.push_back(new TriggerNode(
         "spell reflection",
-        NextAction::array(0, new NextAction("spell reflection", ACTION_MOVE + 1), NULL)));
+        NextAction::array(0,
+            new NextAction("spell reflection", 86.0f),
+            NULL)));
 
-    //triggers.push_back(new TriggerNode(
-        //"taunt on snare target",
-        //NextAction::array(0, new NextAction("heroic throw on snare target", ACTION_MOVE), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "demoralizing shout",
-        NextAction::array(0, new NextAction("demoralizing shout", ACTION_HIGH + 4), NULL)));
-
+    // Main TBC raid-tank rotation.
+    // Shield Block is kept above the threat cycle for boss mitigation.
     triggers.push_back(new TriggerNode(
         "shield block",
-        NextAction::array(0, new NextAction("shield block", ACTION_HIGH + 3), NULL)));
+        NextAction::array(0,
+            new NextAction("shield block", 84.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
-        "sunder armor",
-        NextAction::array(0, new NextAction("devastate", ACTION_HIGH + 2), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "light rage available",
-        NextAction::array(0, new NextAction("shield slam", ACTION_HIGH + 1), NULL)));
+        "shield slam",
+        NextAction::array(0,
+            new NextAction("shield slam", 83.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "revenge",
-        NextAction::array(0, new NextAction("revenge", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction("revenge", 82.0f),
+            NULL)));
+
+    // Build and maintain five Sunder Armor stacks via Devastate.
+    triggers.push_back(new TriggerNode(
+        "protection sunder armor below 5",
+        NextAction::array(0,
+            new NextAction("devastate", 81.0f),
+            NULL)));
+
+    // Raid mitigation debuffs.
+    triggers.push_back(new TriggerNode(
+        "thunder clap",
+        NextAction::array(0,
+            new NextAction("thunder clap", 80.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
+        "demoralizing shout",
+        NextAction::array(0,
+            new NextAction("demoralizing shout", 79.0f),
+            NULL)));
+
+    // Rage dump.
+    triggers.push_back(new TriggerNode(
         "heroic strike",
-        NextAction::array(0, new NextAction("heroic strike", ACTION_NORMAL + 2), NULL)));
+        NextAction::array(0,
+            new NextAction("heroic strike", 66.0f),
+            NULL)));
+
+    // Normal filler once the priority abilities are unavailable.
+    triggers.push_back(new TriggerNode(
+        "devastate",
+        NextAction::array(0,
+            new NextAction("devastate", 60.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "disarm",
-        NextAction::array(0, new NextAction("disarm", ACTION_NORMAL + 1), NULL)));
+        NextAction::array(0,
+            new NextAction("disarm", 58.0f),
+            NULL)));
+
+    // Gap closing remains available when required.
+    triggers.push_back(new TriggerNode(
+        "intercept and rage",
+        NextAction::array(0,
+            new NextAction("berserker stance", ACTION_MOVE + 6),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
-        "devastate",
-        NextAction::array(0, new NextAction("devastate", ACTION_NORMAL), NULL)));
+        "intercept and rage",
+        NextAction::array(0,
+            new NextAction("intercept", ACTION_MOVE + 5),
+            NULL)));
 }
 
 void ProtectionWarriorStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -626,15 +670,10 @@ void ProtectionWarriorRaidStrategy::InitDeadTriggers(std::list<TriggerNode*>& tr
 
 void ProtectionWarriorAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
+    // Generic Warrior AOE already supplies Thunder Clap + Cleave.
+    // Challenging Shout is an emergency cooldown and must not be
+    // burned automatically on every normal multi-target pull.
     WarriorAoeStrategy::InitCombatTriggers(triggers);
-
-    triggers.push_back(new TriggerNode(
-        "melee medium aoe",
-        NextAction::array(0, new NextAction("challenging shout", ACTION_HIGH + 1), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "melee medium aoe",
-        NextAction::array(0, new NextAction("battle shout taunt", ACTION_HIGH), NULL)));
 }
 
 void ProtectionWarriorAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
