@@ -238,6 +238,8 @@ namespace ai
             {
                 creators["judgement"] = [](PlayerbotAI* ai) { return new JudgementTrigger(ai); };
                 creators["judgement of wisdom"] = [](PlayerbotAI* ai) { return new JudgementOfWisdomTrigger(ai); };
+                creators["protection wisdom seal"] = [](PlayerbotAI* ai) { return new ProtectionWisdomSealTrigger(ai); };
+                creators["protection wisdom judgement"] = [](PlayerbotAI* ai) { return new ProtectionWisdomJudgementTrigger(ai); };
                 creators["judgement of light"] = [](PlayerbotAI* ai) { return new JudgementOfLightTrigger(ai); };
                 creators["seal"] = [](PlayerbotAI* ai) { return new SealTrigger(ai); };
                 creators["art of war"] = [](PlayerbotAI* ai) { return new ArtOfWarTrigger(ai); };

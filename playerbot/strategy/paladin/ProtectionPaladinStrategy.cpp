@@ -565,43 +565,91 @@ NextAction** ProtectionPaladinStrategy::GetDefaultCombatActions()
 
 void ProtectionPaladinStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
-    PaladinStrategy::InitCombatTriggers(triggers);  
+    PaladinStrategy::InitCombatTriggers(triggers);
 
+    // Raid tank must never keep Salvation.
     triggers.push_back(new TriggerNode(
         "has blessing of salvation",
-        NextAction::array(0, new NextAction("remove blessing of salvation", ACTION_EMERGENCY), NULL)));
+        NextAction::array(0,
+            new NextAction("remove blessing of salvation", ACTION_EMERGENCY),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "has greater blessing of salvation",
-        NextAction::array(0, new NextAction("remove greater blessing of salvation", ACTION_EMERGENCY), NULL)));
+        NextAction::array(0,
+            new NextAction("remove greater blessing of salvation", ACTION_EMERGENCY),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "lose aggro",
-        NextAction::array(0, new NextAction("righteous defense", ACTION_PASSTROUGH), NULL)));
+        NextAction::array(0,
+            new NextAction("hand of reckoning", ACTION_PASSTROUGH),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "protect party member",
-        NextAction::array(0, new NextAction("blessing of protection on party", ACTION_CRITICAL_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("blessing of protection on party", ACTION_CRITICAL_HEAL),
+            NULL)));
 
+    // Primary mitigation.
     triggers.push_back(new TriggerNode(
         "holy shield",
-        NextAction::array(0, new NextAction("holy shield", ACTION_HIGH + 3), NULL)));
+        NextAction::array(0,
+            new NextAction("holy shield", 85.0f),
+            NULL)));
+
+    // --------------------------------------------------------
+    // RAID JUDGEMENT COORDINATION
+    //
+    // Only if Judgement of Wisdom is actually missing:
+    //
+    // 1. switch temporarily to Seal of Wisdom
+    // 2. cast Judgement
+    // 3. normal "seal" trigger restores Seal of Vengeance
+    //
+    // Retribution's Crusader Strike should normally keep the
+    // judgement refreshed, so this sequence is rarely repeated.
+    // --------------------------------------------------------
 
     triggers.push_back(new TriggerNode(
-        "low mana",
-        NextAction::array(0, new NextAction("seal of wisdom", ACTION_HIGH + 1), NULL)));
+        "protection wisdom seal",
+        NextAction::array(0,
+            new NextAction("seal of wisdom", 84.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
-        "exorcism",
-        NextAction::array(0, new NextAction("exorcism", ACTION_NORMAL + 3), NULL)));
+        "protection wisdom judgement",
+        NextAction::array(0,
+            new NextAction("judgement", 84.0f),
+            NULL)));
+
+    // Main tank threat cycle.
+    triggers.push_back(new TriggerNode(
+        "consecration",
+        NextAction::array(0,
+            new NextAction("consecration", 82.0f),
+            NULL)));
+
+    // Once Wisdom is established this is simply the normal
+    // Vengeance judgement cycle. It does not replace Wisdom.
+    triggers.push_back(new TriggerNode(
+        "judgement",
+        NextAction::array(0,
+            new NextAction("judgement", 81.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "seal",
-        NextAction::array(0, new NextAction("seal of vengeance", ACTION_NORMAL + 2), NULL)));
+        NextAction::array(0,
+            new NextAction("seal of vengeance", 80.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
-        "judgement",
-        NextAction::array(0, new NextAction("judgement", ACTION_NORMAL + 1), NULL)));
+        "exorcism",
+        NextAction::array(0,
+            new NextAction("exorcism", 60.0f),
+            NULL)));
 }
 
 void ProtectionPaladinStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
