@@ -371,24 +371,23 @@ void DestructionWarlockCursesRaidStrategy::InitCombatTriggers(std::list<TriggerN
 
 ai::NextAction** DestructionWarlockStrategy::GetDefaultCombatActions()
 {
-    return NextAction::array(0, new NextAction("incinerate", ACTION_IDLE), NULL);
+    // TBC shadow-destruction raid rotation.
+    return NextAction::array(0,
+        new NextAction("shadow bolt", ACTION_IDLE),
+        NULL);
 }
 
 void DestructionWarlockStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     WarlockStrategy::InitCombatTriggers(triggers);
 
+    // Backlash proc is also consumed with Shadow Bolt.
+    // Do not introduce Immolate / Incinerate / Conflagrate.
     triggers.push_back(new TriggerNode(
         "backlash",
-        NextAction::array(0, new NextAction("incinerate", ACTION_HIGH + 2), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "conflagrate",
-        NextAction::array(0, new NextAction("conflagrate", ACTION_NORMAL + 2), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "immolate",
-        NextAction::array(0, new NextAction("immolate", ACTION_NORMAL + 1), NULL)));
+        NextAction::array(0,
+            new NextAction("shadow bolt", ACTION_HIGH + 2),
+            NULL)));
 }
 
 void DestructionWarlockStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
