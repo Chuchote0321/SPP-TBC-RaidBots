@@ -401,31 +401,73 @@ void ArmsWarriorStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 
     triggers.push_back(new TriggerNode(
         "critical health",
-        NextAction::array(0, new NextAction("intimidating shout", ACTION_EMERGENCY), NULL)));
+        NextAction::array(0,
+            new NextAction("intimidating shout", ACTION_EMERGENCY),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "enemy out of melee",
-        NextAction::array(0, new NextAction("charge", ACTION_MOVE), NULL)));
+        NextAction::array(0,
+            new NextAction("charge", ACTION_MOVE),
+            NULL)));
 
+    // --------------------------------------------------------
+    // RAID OPENER ARMOR DUTY
+    //
+    // Build Sunder Armor to five stacks while the rogue is
+    // preparing a 5-CP Expose Armor.
+    //
+    // ArmsSunderArmorTrigger becomes false immediately when
+    // Expose Armor is present, so normal DPS resumes without
+    // wasting GCDs on an armor debuff that cannot coexist.
+    // --------------------------------------------------------
+    triggers.push_back(new TriggerNode(
+        "arms sunder armor",
+        NextAction::array(0,
+            new NextAction("arms sunder armor", 84.0f),
+            NULL)));
+
+    // Execute phase.
     triggers.push_back(new TriggerNode(
         "target critical health",
-        NextAction::array(0, new NextAction("execute", ACTION_HIGH + 2), NULL)));
+        NextAction::array(0,
+            new NextAction("execute", 86.0f),
+            NULL)));
+
+    // Main TBC Arms priority.
+    triggers.push_back(new TriggerNode(
+        "mortal strike",
+        NextAction::array(0,
+            new NextAction("mortal strike", 83.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "overpower",
-        NextAction::array(0, new NextAction("overpower", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction("overpower", 82.0f),
+            NULL)));
 
+    // Slam is the normal filler between weapon swings for
+    // the TBC two-handed Arms raid build.
+    triggers.push_back(new TriggerNode(
+        "slam",
+        NextAction::array(0,
+            new NextAction("slam", 80.0f),
+            NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "whirlwind",
+        NextAction::array(0,
+            new NextAction("whirlwind", 78.0f),
+            NULL)));
+
+    // Only dump excess rage into Heroic Strike.
+    // HeroicStrikeTrigger already contains rage gating.
     triggers.push_back(new TriggerNode(
         "heroic strike",
-        NextAction::array(0, new NextAction("heroic strike", ACTION_NORMAL + 2), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "mortal strike",
-        NextAction::array(0, new NextAction("mortal strike", ACTION_NORMAL + 1), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "rend",
-        NextAction::array(0, new NextAction("rend", ACTION_NORMAL), NULL)));
+        NextAction::array(0,
+            new NextAction("heroic strike", 65.0f),
+            NULL)));
 }
 
 void ArmsWarriorStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)

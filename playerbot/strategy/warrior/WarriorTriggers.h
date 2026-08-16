@@ -44,6 +44,86 @@ namespace ai
     HAS_AURA_TRIGGER(SlamInstantTrigger, "slam!");
     HAS_AURA_TRIGGER(TasteForBloodTrigger, "taste for blood");
 
+<<<<<<< HEAD
+=======
+    class ProtectionSunderArmorFiveStackTrigger : public Trigger
+    {
+    public:
+        ProtectionSunderArmorFiveStackTrigger(PlayerbotAI* ai) :
+            Trigger(ai, "protection sunder armor below 5") {}
+
+        bool IsActive() override
+        {
+            Unit* target = AI_VALUE(Unit*, "current target");
+
+            if (!target || target->IsDead())
+                return false;
+
+            uint32 spellId =
+                AI_VALUE2(uint32, "spell id", "sunder armor");
+
+            if (!spellId)
+                return false;
+
+            Aura* aura = ai->GetAura(spellId, target);
+
+            // No Sunder yet.
+            if (!aura)
+                return true;
+
+            uint32 stacks =
+                aura->GetHolder()->GetStackAmount();
+
+            // Build to five stacks.
+            if (stacks < 5)
+                return true;
+
+            // Refresh before it expires.
+            return aura->GetHolder()->GetAuraDuration() < 6000;
+        }
+    };
+
+    class ArmsSunderArmorTrigger : public Trigger
+    {
+    public:
+        ArmsSunderArmorTrigger(PlayerbotAI* ai) :
+            Trigger(ai, "arms sunder armor") {}
+
+        bool IsActive() override
+        {
+            Unit* target =
+                AI_VALUE(Unit*, "current target");
+
+            if (!target || target->IsDead())
+                return false;
+
+            // Rogue Expose Armor takes over the armor-reduction slot.
+            if (ai->HasAura("expose armor", target, true))
+                return false;
+
+            uint32 sunderId =
+                AI_VALUE2(uint32, "spell id", "sunder armor");
+
+            if (!sunderId || !bot->IsSpellReady(sunderId))
+                return false;
+
+            Aura* aura =
+                ai->GetAura(sunderId, target);
+
+            if (!aura)
+                return true;
+
+            uint32 stacks =
+                aura->GetHolder()->GetStackAmount();
+
+            if (stacks < 5)
+                return true;
+
+            return aura->GetHolder()->GetAuraDuration() < 6000;
+        }
+    };
+
+>>>>>>> eec6cb7a (TBC raid AI: optimize arms warrior and opener armor duty)
     class BattleShoutTrigger : public Trigger
     {
     public:
