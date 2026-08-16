@@ -390,17 +390,20 @@ void FireMageStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     MageStrategy::InitCombatTriggers(triggers);
 
+    // TBC raid rotation:
+    // maintain Fire Vulnerability with Scorch, then use Fireball as filler.
     triggers.push_back(new TriggerNode(
         "no fire vulnerability",
-        NextAction::array(0, new NextAction("scorch", ACTION_NORMAL + 4), NULL)));
+        NextAction::array(0,
+            new NextAction("scorch", ACTION_NORMAL + 4),
+            NULL)));
 
-    triggers.push_back(new TriggerNode(
-        "living bomb",
-        NextAction::array(0, new NextAction("living bomb", ACTION_NORMAL + 3), NULL)));
-
+    // If the fire school is locked, temporarily fall back to Frostbolt.
     triggers.push_back(new TriggerNode(
         "fire spells locked",
-        NextAction::array(0, new NextAction("frostbolt", ACTION_NORMAL), NULL)));
+        NextAction::array(0,
+            new NextAction("frostbolt", ACTION_NORMAL),
+            NULL)));
 }
 
 void FireMageStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -494,17 +497,12 @@ void FireMageAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     MageAoeStrategy::InitCombatTriggers(triggers);
 
+    // TBC raid AI: use ranged Blizzard as the only primary AOE spell.
     triggers.push_back(new TriggerNode(
-        "living bomb",
-        NextAction::array(0, new NextAction("living bomb", ACTION_HIGH + 2), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "ranged high aoe",
-        NextAction::array(0, new NextAction("flamestrike", ACTION_HIGH + 1), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "fire spells locked",
-        NextAction::array(0, new NextAction("blizzard", ACTION_HIGH), NULL)));
+        "ranged medium aoe",
+        NextAction::array(0,
+            new NextAction("blizzard", ACTION_HIGH),
+            NULL)));
 }
 
 void FireMageAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
