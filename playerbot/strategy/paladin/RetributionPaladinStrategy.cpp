@@ -568,32 +568,56 @@ void RetributionPaladinStrategy::InitCombatTriggers(std::list<TriggerNode*>& tri
 
     triggers.push_back(new TriggerNode(
         "critical health",
-        NextAction::array(0, new NextAction("repentance or shield", ACTION_EMERGENCY + 1),
-                             new NextAction("holy light", ACTION_EMERGENCY), NULL)));
+        NextAction::array(0,
+            new NextAction("repentance or shield", ACTION_EMERGENCY + 1),
+            new NextAction("holy light", ACTION_EMERGENCY),
+            NULL)));
 
-    triggers.push_back(new TriggerNode(
-        "low mana",
-        NextAction::array(0, new NextAction("seal of wisdom", ACTION_HIGH + 1), NULL)));
-
+    // Execute-range finisher.
     triggers.push_back(new TriggerNode(
         "target critical health",
-        NextAction::array(0, new NextAction("hammer of wrath", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction("hammer of wrath", 86.0f),
+            NULL)));
 
-    triggers.push_back(new TriggerNode(
-        "exorcism",
-        NextAction::array(0, new NextAction("exorcism", ACTION_NORMAL + 4), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "seal",
-        NextAction::array(0, new NextAction("seal of command", ACTION_NORMAL + 3), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "judgement",
-        NextAction::array(0, new NextAction("judgement", ACTION_NORMAL + 2), NULL)));
-
+    // --------------------------------------------------------
+    // Highest normal raid-DPS priority.
+    //
+    // In TBC Crusader Strike refreshes Paladin Judgements on
+    // the target. Keeping it on cooldown therefore maintains
+    // the tank's Judgement of Wisdom.
+    // --------------------------------------------------------
     triggers.push_back(new TriggerNode(
         "crusader strike",
-        NextAction::array(0, new NextAction("crusader strike", ACTION_NORMAL), NULL)));
+        NextAction::array(0,
+            new NextAction("crusader strike", 84.0f),
+            NULL)));
+
+    // Normal Retribution judgement / seal cycle.
+    triggers.push_back(new TriggerNode(
+        "judgement",
+        NextAction::array(0,
+            new NextAction("judgement", 82.0f),
+            NULL)));
+
+    // TBC action-node prefers Seal of Blood where available,
+    // with Seal of Command as fallback.
+    triggers.push_back(new TriggerNode(
+        "seal",
+        NextAction::array(0,
+            new NextAction("seal of command", 81.0f),
+            NULL)));
+
+    // Valid undead/demon target only.
+    triggers.push_back(new TriggerNode(
+        "exorcism",
+        NextAction::array(0,
+            new NextAction("exorcism", 78.0f),
+            NULL)));
+
+    // Do NOT automatically switch to Seal of Wisdom.
+    // Protection owns Judgement of Wisdom; Retribution's job
+    // is to refresh it through Crusader Strike.
 }
 
 void RetributionPaladinStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -689,15 +713,15 @@ void RetributionPaladinAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& 
 
     triggers.push_back(new TriggerNode(
         "melee light aoe",
-        NextAction::array(0, new NextAction("oil of immolation", ACTION_HIGH + 2), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "melee light aoe",
-        NextAction::array(0, new NextAction("consecration", ACTION_HIGH + 1), NULL)));
+        NextAction::array(0,
+            new NextAction("consecration", 80.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "consecration",
-        NextAction::array(0, new NextAction("consecration", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction("consecration", 78.0f),
+            NULL)));
 }
 
 void RetributionPaladinAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
