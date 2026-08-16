@@ -393,33 +393,46 @@ void FuryWarriorStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     WarriorStrategy::InitCombatTriggers(triggers);
 
-    triggers.push_back(new TriggerNode(
-        "critical health",
-        NextAction::array(0, new NextAction("intimidating shout", ACTION_EMERGENCY), NULL)));
-
+    // Raid-safe gap closing.
     triggers.push_back(new TriggerNode(
         "enemy out of melee",
-        NextAction::array(0, new NextAction("charge", ACTION_MOVE), NULL)));
+        NextAction::array(0,
+            new NextAction("charge", ACTION_MOVE),
+            NULL)));
 
+    // Execute phase takes precedence over the normal cycle.
     triggers.push_back(new TriggerNode(
         "target critical health",
-        NextAction::array(0, new NextAction("execute", ACTION_NORMAL + 4), NULL)));
+        NextAction::array(0,
+            new NextAction("execute", 86.0f),
+            NULL)));
 
+    // Keep Rampage active as part of the core Fury rotation.
+    triggers.push_back(new TriggerNode(
+        "rampage",
+        NextAction::array(0,
+            new NextAction("rampage", 84.0f),
+            NULL)));
+
+    // Primary TBC Fury abilities.
     triggers.push_back(new TriggerNode(
         "bloodthirst",
-        NextAction::array(0, new NextAction("bloodthirst", ACTION_NORMAL + 3), NULL)));
+        NextAction::array(0,
+            new NextAction("bloodthirst", 83.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "whirlwind",
-        NextAction::array(0, new NextAction("whirlwind", ACTION_NORMAL + 2), NULL)));
+        NextAction::array(0,
+            new NextAction("whirlwind", 82.0f),
+            NULL)));
 
+    // Existing HeroicStrikeTrigger performs rage gating.
     triggers.push_back(new TriggerNode(
         "heroic strike",
-        NextAction::array(0, new NextAction("heroic strike", ACTION_NORMAL + 1), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "intercept on snare target",
-        NextAction::array(0, new NextAction("intercept on snare target", ACTION_NORMAL), NULL)));
+        NextAction::array(0,
+            new NextAction("heroic strike", 65.0f),
+            NULL)));
 }
 
 void FuryWarriorStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -513,13 +526,12 @@ void FuryWarriorAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigger
 {
     WarriorAoeStrategy::InitCombatTriggers(triggers);
 
+    // Whirlwind is the primary Fury multi-target active ability.
     triggers.push_back(new TriggerNode(
-        "melee medium aoe",
-        NextAction::array(0, new NextAction("whirlwind", ACTION_HIGH + 5), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "melee medium aoe",
-        NextAction::array(0, new NextAction("bloodthirst", ACTION_HIGH + 4), NULL)));
+        "melee light aoe",
+        NextAction::array(0,
+            new NextAction("whirlwind", 84.0f),
+            NULL)));
 }
 
 void FuryWarriorAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
