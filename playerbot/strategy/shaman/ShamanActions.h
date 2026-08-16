@@ -30,10 +30,89 @@ namespace ai
         CastHealingWaveOnPartyAction(PlayerbotAI* ai) : HealPartyMemberAction(ai, "healing wave") {}
     };
 
-    class CastChainHealAction : public CastAoeHealSpellAction 
+    class CastChainHealAction : public CastAoeHealSpellAction
     {
     public:
         CastChainHealAction(PlayerbotAI* ai) : CastAoeHealSpellAction(ai, "chain heal") {}
+    };
+
+    // TBC raid-healing downrank actions.
+    class CastChainHealRank4Action : public CastAoeHealSpellAction
+    {
+    public:
+        CastChainHealRank4Action(PlayerbotAI* ai) :
+            CastAoeHealSpellAction(ai, "chain heal(4)") {}
+
+        std::string getName() override
+        {
+            return "chain heal rank 4";
+        }
+    };
+
+    class CastChainHealRank1Action : public CastAoeHealSpellAction
+    {
+    public:
+        CastChainHealRank1Action(PlayerbotAI* ai) :
+            CastAoeHealSpellAction(ai, "chain heal(1)") {}
+
+        std::string getName() override
+        {
+            return "chain heal rank 1";
+        }
+    };
+
+    class CastChainHealRank4SelfAction : public CastHealingSpellAction
+    {
+    public:
+        CastChainHealRank4SelfAction(PlayerbotAI* ai) :
+            CastHealingSpellAction(ai, "chain heal(4)") {}
+
+        std::string getName() override
+        {
+            return "chain heal rank 4 self";
+        }
+    };
+
+    class CastChainHealRank1SelfAction : public CastHealingSpellAction
+    {
+    public:
+        CastChainHealRank1SelfAction(PlayerbotAI* ai) :
+            CastHealingSpellAction(ai, "chain heal(1)") {}
+
+        std::string getName() override
+        {
+            return "chain heal rank 1 self";
+        }
+    };
+
+    class CastChainHealRank4OnTankAction : public CastAoeHealSpellAction
+    {
+    public:
+        CastChainHealRank4OnTankAction(PlayerbotAI* ai) :
+            CastAoeHealSpellAction(ai, "chain heal(4)") {}
+
+        std::string getName() override
+        {
+            return "chain heal rank 4 on tank";
+        }
+
+    protected:
+        std::string GetTargetName() override
+        {
+            return "party tank without aura";
+        }
+
+        std::string GetTargetQualifier() override
+        {
+            // Chain Heal leaves no persistent aura, so this value
+            // resolves an alive group tank without suppressing recasts.
+            return "chain heal";
+        }
+
+        std::string GetReachActionName() override
+        {
+            return "reach party member to heal";
+        }
     };
 
     class CastRiptideAction : public CastHealingSpellAction 

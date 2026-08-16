@@ -533,45 +533,71 @@ void RestorationShamanStrategy::InitCombatTriggers(std::list<TriggerNode*>& trig
 {
     ShamanStrategy::InitCombatTriggers(triggers);
 
-    triggers.push_back(new TriggerNode(
-        "low mana",
-        NextAction::array(0, new NextAction("mana tide totem", ACTION_EMERGENCY), NULL)));
-
+    // Emergency self-healing: Chain Heal rank 4 only.
     triggers.push_back(new TriggerNode(
         "critical health",
-        NextAction::array(0, new NextAction("healing wave", ACTION_CRITICAL_HEAL + 1), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 4 self", 86.0f),
+            NULL)));
 
+    // Emergency raid healing.
     triggers.push_back(new TriggerNode(
         "party member critical health",
-        NextAction::array(0, new NextAction("healing wave on party", ACTION_CRITICAL_HEAL + 1), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 4", 85.0f),
+            NULL)));
 
+    // Prefer a wounded tank as the first Chain Heal target.
     triggers.push_back(new TriggerNode(
-        "low health",
-        NextAction::array(0, new NextAction("riptide", ACTION_CRITICAL_HEAL), NULL)));
+        "restoration tank injured",
+        NextAction::array(0,
+            new NextAction("chain heal rank 4 on tank", 84.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member low health",
-        NextAction::array(0, new NextAction("riptide on party", ACTION_CRITICAL_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 4", 83.0f),
+            NULL)));
 
+    // Sustained raid damage.
     triggers.push_back(new TriggerNode(
         "medium aoe heal",
-        NextAction::array(0, new NextAction("chain heal", ACTION_MEDIUM_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 4", 82.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "medium health",
-        NextAction::array(0, new NextAction("healing wave", ACTION_MEDIUM_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 4 self", 81.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member medium health",
-        NextAction::array(0, new NextAction("healing wave on party", ACTION_MEDIUM_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 4", 80.0f),
+            NULL)));
 
+    // Efficient topping with rank 1.
     triggers.push_back(new TriggerNode(
         "almost full health",
-        NextAction::array(0, new NextAction("lesser healing wave", ACTION_LIGHT_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 1 self", 66.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member almost full health",
-        NextAction::array(0, new NextAction("lesser healing wave on party", ACTION_LIGHT_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 1", 65.0f),
+            NULL)));
+
+    // Mana Tide is proactive, but never outranks required healing.
+    triggers.push_back(new TriggerNode(
+        "restoration mana below 80",
+        NextAction::array(0,
+            new NextAction("mana tide totem", 58.0f),
+            NULL)));
 }
 
 void RestorationShamanStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -580,27 +606,39 @@ void RestorationShamanStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& t
 
     triggers.push_back(new TriggerNode(
         "critical health",
-        NextAction::array(0, new NextAction("healing wave", ACTION_CRITICAL_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 4 self", ACTION_CRITICAL_HEAL),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member critical health",
-        NextAction::array(0, new NextAction("healing wave on party", ACTION_CRITICAL_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 4", ACTION_CRITICAL_HEAL),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "medium health",
-        NextAction::array(0, new NextAction("healing wave", ACTION_MEDIUM_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 4 self", ACTION_MEDIUM_HEAL),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member medium health",
-        NextAction::array(0, new NextAction("healing wave on party", ACTION_MEDIUM_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 4", ACTION_MEDIUM_HEAL),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "almost full health",
-        NextAction::array(0, new NextAction("lesser healing wave", ACTION_LIGHT_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 1 self", ACTION_LIGHT_HEAL),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member almost full health",
-        NextAction::array(0, new NextAction("lesser healing wave on party", ACTION_LIGHT_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction("chain heal rank 1", ACTION_LIGHT_HEAL),
+            NULL)));
 }
 
 void RestorationShamanStrategy::InitReactionTriggers(std::list<TriggerNode*>& triggers)

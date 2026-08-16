@@ -717,19 +717,19 @@ void ShamanCureStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 
     triggers.push_back(new TriggerNode(
         "cure disease",
-        NextAction::array(0, new NextAction("cure disease", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cure disease", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member cure disease",
-        NextAction::array(0, new NextAction("cure disease on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cure disease on party", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cure poison",
-        NextAction::array(0, new NextAction("cure poison", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cure poison", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member cure poison",
-        NextAction::array(0, new NextAction("cure poison on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cure poison on party", 79.0f), NULL)));
 }
 
 void ShamanCureStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -738,19 +738,19 @@ void ShamanCureStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers
 
     triggers.push_back(new TriggerNode(
         "cure disease",
-        NextAction::array(0, new NextAction("cure disease", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cure disease", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member cure disease",
-        NextAction::array(0, new NextAction("cure disease on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cure disease on party", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "cure poison",
-        NextAction::array(0, new NextAction("cure poison", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cure poison", 79.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "party member cure poison",
-        NextAction::array(0, new NextAction("cure poison on party", ACTION_DISPEL), NULL)));
+        NextAction::array(0, new NextAction("cure poison on party", 79.0f), NULL)));
 }
 
 void ShamanCurePvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)

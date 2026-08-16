@@ -258,6 +258,8 @@ namespace ai
                 creators["purge"] = [](PlayerbotAI* ai) { return new PurgeTrigger(ai); };
                 creators["shaman weapon"] = [](PlayerbotAI* ai) { return new ShamanWeaponTrigger(ai); };
                 creators["water shield"] = [](PlayerbotAI* ai) { return new WaterShieldTrigger(ai); };
+                creators["restoration mana below 80"] = [](PlayerbotAI* ai) { return new RestorationShamanManaBelow80Trigger(ai); };
+                creators["restoration tank injured"] = [](PlayerbotAI* ai) { return new RestorationShamanTankInjuredTrigger(ai); };
                 creators["lightning shield"] = [](PlayerbotAI* ai) { return new LightningShieldTrigger(ai); };
                 creators["water breathing"] = [](PlayerbotAI* ai) { return new WaterBreathingTrigger(ai); };
                 creators["water walking"] = [](PlayerbotAI* ai) { return new WaterWalkingTrigger(ai); };
@@ -340,6 +342,11 @@ namespace ai
                 creators["earth shield"] = [](PlayerbotAI* ai) { return new CastEarthShieldAction(ai); };
                 creators["earth shield on party"] = [](PlayerbotAI* ai) { return new CastEarthShieldOnPartyAction(ai); };
                 creators["chain heal"] = [](PlayerbotAI* ai) { return new CastChainHealAction(ai); };
+                creators["chain heal rank 4"] = [](PlayerbotAI* ai) { return new CastChainHealRank4Action(ai); };
+                creators["chain heal rank 1"] = [](PlayerbotAI* ai) { return new CastChainHealRank1Action(ai); };
+                creators["chain heal rank 4 self"] = [](PlayerbotAI* ai) { return new CastChainHealRank4SelfAction(ai); };
+                creators["chain heal rank 1 self"] = [](PlayerbotAI* ai) { return new CastChainHealRank1SelfAction(ai); };
+                creators["chain heal rank 4 on tank"] = [](PlayerbotAI* ai) { return new CastChainHealRank4OnTankAction(ai); };
                 creators["riptide"] = [](PlayerbotAI* ai) { return new CastRiptideAction(ai); };
                 creators["riptide on party"] = [](PlayerbotAI* ai) { return new CastRiptideOnPartyAction(ai); };
                 creators["stormstrike"] = [](PlayerbotAI* ai) { return new CastStormstrikeAction(ai); };

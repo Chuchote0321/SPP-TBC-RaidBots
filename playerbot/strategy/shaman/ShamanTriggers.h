@@ -303,6 +303,36 @@ namespace ai
         WaterShieldTrigger(PlayerbotAI* ai) : BuffTrigger(ai, "water shield") {}
     };
 
+    class RestorationShamanManaBelow80Trigger : public Trigger
+    {
+    public:
+        RestorationShamanManaBelow80Trigger(PlayerbotAI* ai) :
+            Trigger(ai, "restoration mana below 80") {}
+
+        bool IsActive() override
+        {
+            return AI_VALUE2(bool, "has mana", "self target") &&
+                   AI_VALUE2(uint8, "mana", "self target") < 80;
+        }
+    };
+
+    class RestorationShamanTankInjuredTrigger : public Trigger
+    {
+    public:
+        RestorationShamanTankInjuredTrigger(PlayerbotAI* ai) :
+            Trigger(ai, "restoration tank injured") {}
+
+        bool IsActive() override
+        {
+            Unit* tank =
+                AI_VALUE2(Unit*, "party tank without aura", "chain heal");
+
+            return tank &&
+                   tank->GetHealthPercent() <
+                       sPlayerbotAIConfig.almostFullHealth;
+        }
+    };
+
     class LightningShieldTrigger : public BuffTrigger
     {
     public:
