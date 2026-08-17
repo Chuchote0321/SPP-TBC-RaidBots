@@ -197,6 +197,7 @@ namespace ai
                 creators["rupture"] = [](PlayerbotAI* ai) { return new RuptureTrigger(ai); };
                 creators["slice and dice"] = [](PlayerbotAI* ai) { return new SliceAndDiceTrigger(ai); };
                 creators["expose armor"] = [](PlayerbotAI* ai) { return new ExposeArmorTrigger(ai); };
+                creators["expose armor 5 cp"] = [](PlayerbotAI* ai) { return new ExposeArmorTrigger(ai, 5); };
                 creators["kick on enemy healer"] = [](PlayerbotAI* ai) { return new KickInterruptEnemyHealerSpellTrigger(ai); };
                 creators["adrenaline rush"] = [](PlayerbotAI* ai) { return new RogueBoostBuffTrigger(ai, "adrenaline rush"); };
                 creators["unstealth"] = [](PlayerbotAI* ai) { return new RogueUnstealthTrigger(ai); };

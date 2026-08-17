@@ -32,6 +32,25 @@ namespace ai
 
     BOOST_TRIGGER_A(ShadowfiendTrigger, "shadowfiend");
     CAN_CAST_TRIGGER(MindBlastTrigger, "mind blast");
+
+    class ShadowWordDeathSafeTrigger : public SpellCanBeCastedTrigger
+    {
+    public:
+        ShadowWordDeathSafeTrigger(PlayerbotAI* ai) :
+            SpellCanBeCastedTrigger(ai, "shadow word: death") {}
+
+        bool IsActive() override
+        {
+            // TBC Shadow Word: Death returns damage to the caster
+            // if the target survives. Keep a conservative health
+            // reserve before allowing it into the normal raid cycle.
+            if (AI_VALUE2(uint8, "health", "self target") < 70)
+                return false;
+
+            return SpellCanBeCastedTrigger::IsActive();
+        }
+    };
+
     CAN_CAST_TRIGGER(SmiteTrigger, "smite");
 
     class PowerWordFortitudeOnPartyTrigger : public BuffOnPartyTrigger 

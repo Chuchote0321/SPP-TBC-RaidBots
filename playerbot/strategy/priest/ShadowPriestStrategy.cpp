@@ -406,37 +406,74 @@ void ShadowPriestStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     PriestStrategy::InitCombatTriggers(triggers);
 
-    triggers.push_back(new TriggerNode(
-        "target critical health",
-        NextAction::array(0, new NextAction("shadow word: death", ACTION_HIGH + 1), NULL)));
+    // --------------------------------------------------------
+    // TBC RAID SHADOW PRIEST
+    //
+    // Main responsibility:
+    // keep Vampiric Touch active and convert sustained shadow
+    // damage into party mana return.
+    // --------------------------------------------------------
 
+    // Use Shadowfiend early enough that a normal boss fight can
+    // benefit from the mana return instead of waiting for OOM.
     triggers.push_back(new TriggerNode(
-        "mind blast",
-        NextAction::array(0, new NextAction("mind blast", ACTION_HIGH), NULL)));
+        "mana below 50",
+        NextAction::array(0,
+            new NextAction("shadowfiend", 87.0f),
+            NULL)));
 
-    triggers.push_back(new TriggerNode(
-        "vampiric embrace",
-        NextAction::array(0, new NextAction("vampiric embrace", ACTION_NORMAL + 3), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "shadow word: pain",
-        NextAction::array(0, new NextAction("shadow word: pain", ACTION_NORMAL + 2), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "devouring plague",
-        NextAction::array(0, new NextAction("devouring plague", ACTION_NORMAL + 2), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "hex of weakness",
-        NextAction::array(0, new NextAction("hex of weakness", ACTION_NORMAL + 2), NULL)));
-
+    // Vampiric Touch is the highest sustained-DPS/support duty.
     triggers.push_back(new TriggerNode(
         "vampiric touch",
-        NextAction::array(0, new NextAction("vampiric touch", ACTION_NORMAL + 1), NULL)));
+        NextAction::array(0,
+            new NextAction("vampiric touch", 86.0f),
+            NULL)));
 
+    // Maintain the second core DoT.
+    triggers.push_back(new TriggerNode(
+        "shadow word: pain",
+        NextAction::array(0,
+            new NextAction("shadow word: pain", 85.0f),
+            NULL)));
+
+    // Long-duration group healing support.
+    triggers.push_back(new TriggerNode(
+        "vampiric embrace",
+        NextAction::array(0,
+            new NextAction("vampiric embrace", 84.0f),
+            NULL)));
+
+    // Undead racial where available. The trigger naturally
+    // remains inactive for priests that do not know the spell.
+    triggers.push_back(new TriggerNode(
+        "devouring plague",
+        NextAction::array(0,
+            new NextAction("devouring plague", 83.0f),
+            NULL)));
+
+    // Primary cooldown nuke.
+    triggers.push_back(new TriggerNode(
+        "mind blast",
+        NextAction::array(0,
+            new NextAction("mind blast", 82.0f),
+            NULL)));
+
+    // Use Shadow Word: Death as a normal raid nuke only when
+    // the caster has a safe health reserve.
+    triggers.push_back(new TriggerNode(
+        "shadow word: death safe",
+        NextAction::array(0,
+            new NextAction("shadow word: death", 81.0f),
+            NULL)));
+
+    // Mind Flay remains GetDefaultCombatActions() filler.
+
+    // Absolute mana starvation fallback.
     triggers.push_back(new TriggerNode(
         "no mana",
-        NextAction::array(0, new NextAction("shoot", ACTION_NORMAL), NULL)));
+        NextAction::array(0,
+            new NextAction("shoot", ACTION_NORMAL),
+            NULL)));
 }
 
 void ShadowPriestStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -530,13 +567,14 @@ void ShadowPriestAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigge
 {
     PriestAoeStrategy::InitCombatTriggers(triggers);
 
+    // TBC has no Mind Sear. Only spread SW:P to durable
+    // attackers instead of repeatedly hard-casting Vampiric
+    // Touch across short-lived raid trash.
     triggers.push_back(new TriggerNode(
         "shadow word: pain on attacker",
-        NextAction::array(0, new NextAction("shadow word: pain on attacker", ACTION_HIGH + 1), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "vampiric touch on attacker",
-        NextAction::array(0, new NextAction("vampiric touch on attacker", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction("shadow word: pain on attacker", 78.0f),
+            NULL)));
 }
 
 void ShadowPriestAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)

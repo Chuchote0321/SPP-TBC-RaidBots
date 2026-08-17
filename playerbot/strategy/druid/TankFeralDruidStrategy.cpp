@@ -484,45 +484,123 @@ void TankFeralDruidStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigger
 {
     DruidStrategy::InitCombatTriggers(triggers);
 
+    // --------------------------------------------------------
+    // TBC RAID BEAR TANK
+    // --------------------------------------------------------
+
+    // Tanks must never retain Salvation.
     triggers.push_back(new TriggerNode(
         "has blessing of salvation",
-        NextAction::array(0, new NextAction("remove blessing of salvation", ACTION_EMERGENCY), NULL)));
+        NextAction::array(0,
+            new NextAction(
+                "remove blessing of salvation",
+                ACTION_EMERGENCY
+            ),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "has greater blessing of salvation",
-        NextAction::array(0, new NextAction("remove greater blessing of salvation", ACTION_EMERGENCY), NULL)));
+        NextAction::array(0,
+            new NextAction(
+                "remove greater blessing of salvation",
+                ACTION_EMERGENCY
+            ),
+            NULL)));
 
-    triggers.push_back(new TriggerNode(
-        "critical health",
-        NextAction::array(0, new NextAction("survival instincts", ACTION_EMERGENCY), NULL)));
 
+    // Emergency self sustain without leaving Bear Form.
     triggers.push_back(new TriggerNode(
         "low health",
-        NextAction::array(0, new NextAction("frenzied regeneration", ACTION_LIGHT_HEAL), NULL)));
+        NextAction::array(0,
+            new NextAction(
+                "frenzied regeneration",
+                89.0f
+            ),
+            NULL)));
 
+
+    // Gap closer / pickup.
     triggers.push_back(new TriggerNode(
         "enemy out of melee",
-        NextAction::array(0, new NextAction("feral charge - bear", ACTION_MOVE + 1), NULL)));
+        NextAction::array(0,
+            new NextAction(
+                "feral charge - bear",
+                ACTION_MOVE + 2
+            ),
+            NULL)));
 
+
+    // Single-target taunt only when this tank actually loses
+    // the current target to a non-tank.
     triggers.push_back(new TriggerNode(
         "lose aggro",
-        NextAction::array(0, new NextAction("growl", ACTION_PASSTROUGH), NULL)));
+        NextAction::array(0,
+            new NextAction(
+                "growl",
+                92.0f
+            ),
+            NULL)));
 
+
+    // Highest normal threat ability.
+    // Dedicated trigger checks spell readiness instead of
+    // merely checking rage.
     triggers.push_back(new TriggerNode(
-        "faerie fire (feral)",
-        NextAction::array(0, new NextAction("faerie fire (feral)", ACTION_HIGH + 1), NULL)));
+        "tank mangle (bear)",
+        NextAction::array(0,
+            new NextAction(
+                "mangle (bear)",
+                86.0f
+            ),
+            NULL)));
 
+
+    // Build to five stacks and refresh under 3 seconds.
     triggers.push_back(new TriggerNode(
         "lacerate",
-        NextAction::array(0, new NextAction("lacerate", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction(
+                "lacerate",
+                85.0f
+            ),
+            NULL)));
 
-    triggers.push_back(new TriggerNode(
-        "medium rage available",
-        NextAction::array(0, new NextAction("mangle (bear)", ACTION_NORMAL + 2), NULL)));
 
+    // Free ranged threat / armor support.
     triggers.push_back(new TriggerNode(
-        "enemy too close for melee",
-        NextAction::array(0, new NextAction("move out of enemy contact", ACTION_NORMAL), NULL)));
+        "faerie fire (feral)",
+        NextAction::array(0,
+            new NextAction(
+                "faerie fire (feral)",
+                84.0f
+            ),
+            NULL)));
+
+
+    // Maintain attack-power reduction, but do not overwrite
+    // an existing Warrior Demoralizing Shout.
+    triggers.push_back(new TriggerNode(
+        "tank demoralizing roar",
+        NextAction::array(0,
+            new NextAction(
+                "demoralizing roar",
+                83.0f
+            ),
+            NULL)));
+
+
+    // Maul is the high-rage dump, not a rotational ability
+    // that should starve Mangle/Lacerate.
+    triggers.push_back(new TriggerNode(
+        "high rage available",
+        NextAction::array(0,
+            new NextAction(
+                "maul",
+                66.0f
+            ),
+            NULL)));
+
+    // Melee remains GetDefaultCombatActions() filler.
 }
 
 void TankFeralDruidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -658,18 +736,29 @@ void TankFeralDruidAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& trig
 {
     DruidAoeStrategy::InitCombatTriggers(triggers);
 
+    // Medium packs: Swipe is the normal threat generator.
     triggers.push_back(new TriggerNode(
         "melee medium aoe",
-        NextAction::array(0, new NextAction("challenging roar", ACTION_HIGH + 3), NULL)));
+        NextAction::array(0,
+            new NextAction(
+                "swipe (bear)",
+                87.0f
+            ),
+            NULL)));
 
-    triggers.push_back(new TriggerNode(
-        "melee medium aoe",
-        NextAction::array(0, new NextAction("demoralizing roar", ACTION_HIGH + 2),
-                             new NextAction("swipe (bear)", ACTION_HIGH + 1), NULL)));
-
+    // Light cleave.
     triggers.push_back(new TriggerNode(
         "melee light aoe",
-        NextAction::array(0, new NextAction("swipe (bear)", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction(
+                "swipe (bear)",
+                86.0f
+            ),
+            NULL)));
+
+    // Challenging Roar is deliberately excluded from the
+    // routine AOE cycle. It remains available as an emergency
+    // action instead of being spent whenever several mobs exist.
 }
 
 void TankFeralDruidAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -717,13 +806,18 @@ void TankFeralDruidBuffStrategy::InitCombatTriggers(std::list<TriggerNode*>& tri
 {
     DruidBuffStrategy::InitCombatTriggers(triggers);
 
+    // Bear Form is mandatory tank state.
     triggers.push_back(new TriggerNode(
         "bear form",
-        NextAction::array(0, new NextAction("dire bear form", ACTION_MOVE), NULL)));
+        NextAction::array(0,
+            new NextAction(
+                "dire bear form",
+                95.0f
+            ),
+            NULL)));
 
-    triggers.push_back(new TriggerNode(
-        "enrage",
-        NextAction::array(0, new NextAction("enrage", ACTION_HIGH), NULL)));
+    // No automatic Enrage during boss tanking:
+    // preserve mitigation instead of trading armor for rage.
 }
 
 void TankFeralDruidBuffStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -732,7 +826,21 @@ void TankFeralDruidBuffStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& 
 
     triggers.push_back(new TriggerNode(
         "omen of clarity",
-        NextAction::array(0, new NextAction("omen of clarity", ACTION_NORMAL), NULL)));
+        NextAction::array(0,
+            new NextAction(
+                "omen of clarity",
+                91.0f
+            ),
+            NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "bear form",
+        NextAction::array(0,
+            new NextAction(
+                "dire bear form",
+                90.0f
+            ),
+            NULL)));
 }
 
 void TankFeralDruidBuffPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -763,6 +871,9 @@ void TankFeralDruidBuffRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>&
 {
     TankFeralDruidBuffStrategy::InitCombatTriggers(triggers);
     DruidBuffRaidStrategy::InitCombatTriggers(triggers);
+
+    // No automatic Stoneshield Potion spam.
+    // Consumables can be controlled separately by raid setup.
 }
 
 void TankFeralDruidBuffRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)

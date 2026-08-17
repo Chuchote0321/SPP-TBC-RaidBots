@@ -735,8 +735,40 @@ void DestructionWarlockCursesPvpStrategy::InitCombatTriggers(std::list<TriggerNo
 
 void DestructionWarlockCursesRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
-    DestructionWarlockCursesStrategy::InitCombatTriggers(triggers);
-    WarlockCursesRaidStrategy::InitCombatTriggers(triggers);
+    // Do NOT call DestructionWarlockCursesStrategy here.
+    // Generic TBC behavior assigns Curse of Agony to every
+    // destruction warlock.
+
+    triggers.push_back(new TriggerNode(
+        "raid curse elements",
+        NextAction::array(0,
+            new NextAction(
+                "curse of the elements",
+                92.0f
+            ),
+            NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "raid curse recklessness",
+        NextAction::array(0,
+            new NextAction(
+                "curse of recklessness",
+                91.0f
+            ),
+            NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "raid curse doom",
+        NextAction::array(0,
+            new NextAction(
+                "curse of doom",
+                90.0f
+            ),
+            new NextAction(
+                "curse of agony",
+                89.0f
+            ),
+            NULL)));
 }
 
 #endif

@@ -1,4 +1,6 @@
 #pragma once
+
+#include <chrono>
 #include "playerbot/strategy/triggers/GenericTriggers.h"
 
 namespace ai
@@ -455,6 +457,138 @@ namespace ai
     public:
         FrostShockSnareTrigger(PlayerbotAI* ai) : SnareTargetTrigger(ai, "frost shock") {}
     };
+
+    class ShamanisticRageTrigger : public BoostTrigger
+    {
+    public:
+        ShamanisticRageTrigger(PlayerbotAI* ai) :
+            BoostTrigger(ai, "shamanistic rage") {}
+
+        bool IsActive() override
+        {
+            if (AI_VALUE2(uint8, "mana", "self target") >= 60)
+                return false;
+
+            return BoostTrigger::IsActive();
+        }
+    };
+    // ========================================================
+    // TBC Enhancement Air Totem Twisting
+    // ========================================================
+
+    class EnhancementWindfuryTwistTrigger : public Trigger
+    {
+    public:
+        EnhancementWindfuryTwistTrigger(PlayerbotAI* ai) :
+            Trigger(ai, "enhancement windfury twist"),
+            trackingGrace(false)
+        {
+        }
+
+        bool IsActive() override
+        {
+            bool hasWindfury =
+                AI_VALUE2(bool, "has totem", "windfury totem");
+
+            bool hasGrace =
+                AI_VALUE2(bool, "has totem", "grace of air totem");
+
+            uint8 mana =
+                AI_VALUE2(uint8, "mana", "self target");
+
+
+            // No relevant air totem: establish Windfury first.
+            if (!hasWindfury && !hasGrace)
+            {
+                trackingGrace = false;
+                return true;
+            }
+
+
+            // Windfury is currently down.
+            // Grace trigger owns the next transition.
+            if (hasWindfury)
+            {
+                trackingGrace = false;
+                return false;
+            }
+
+
+            // Grace is currently down.
+            //
+            // If mana becomes critical, immediately return to
+            // Windfury and stop twisting.
+            if (mana < 25)
+            {
+                trackingGrace = false;
+                return true;
+            }
+
+
+            auto now =
+                std::chrono::steady_clock::now();
+
+
+            // Start the Grace hold timer on the first AI tick
+            // after Grace becomes the active air totem.
+            if (!trackingGrace)
+            {
+                graceSince = now;
+                trackingGrace = true;
+                return false;
+            }
+
+
+            auto elapsed =
+                std::chrono::duration_cast<
+                    std::chrono::milliseconds
+                >(now - graceSince).count();
+
+
+            // Conservative refresh window.
+            //
+            // Grace normally appears roughly one GCD after
+            // Windfury. Holding Grace for 6.5 seconds places
+            // the next Windfury safely before the residual
+            // Windfury party buff expires.
+            return elapsed >= 6500;
+        }
+
+    private:
+        bool trackingGrace;
+
+        std::chrono::steady_clock::time_point graceSince;
+    };
+
+
+    class EnhancementGraceTwistTrigger : public Trigger
+    {
+    public:
+        EnhancementGraceTwistTrigger(PlayerbotAI* ai) :
+            Trigger(ai, "enhancement grace twist")
+        {
+        }
+
+        bool IsActive() override
+        {
+            // Below 25% mana, conserve mana and leave
+            // Windfury permanently active.
+            if (AI_VALUE2(uint8, "mana", "self target") < 25)
+                return false;
+
+            bool hasWindfury =
+                AI_VALUE2(bool, "has totem", "windfury totem");
+
+            bool hasGrace =
+                AI_VALUE2(bool, "has totem", "grace of air totem");
+
+            // Windfury was just established.
+            // Replace it with Grace on the next usable GCD.
+            return hasWindfury && !hasGrace;
+        }
+    };
+
+    BOOST_TRIGGER(ElementalMasteryTrigger, "elemental mastery");
 
     class HeroismTrigger : public BoostTrigger
     {

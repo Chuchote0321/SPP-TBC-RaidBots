@@ -455,34 +455,42 @@ void BalanceDruidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     DruidStrategy::InitCombatTriggers(triggers);
 
+    // --------------------------------------------------------
+    // TBC RAID BALANCE
+    // --------------------------------------------------------
+
+    // Combat resurrection remains an emergency raid duty.
     triggers.push_back(new TriggerNode(
         "rebirth",
-        NextAction::array(0, new NextAction("rebirth", ACTION_EMERGENCY), NULL)));
+        NextAction::array(0,
+            new NextAction("rebirth", ACTION_EMERGENCY),
+            NULL)));
 
-    triggers.push_back(new TriggerNode(
-        "critical health",
-        NextAction::array(0, new NextAction("regrowth", ACTION_CRITICAL_HEAL + 1),
-                             new NextAction("healing touch", ACTION_CRITICAL_HEAL), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "low health",
-        NextAction::array(0, new NextAction("regrowth", ACTION_MEDIUM_HEAL), NULL)));
-
+    // Primary raid debuff duty.
     triggers.push_back(new TriggerNode(
         "faerie fire",
-        NextAction::array(0, new NextAction("faerie fire", ACTION_NORMAL + 3), NULL)));
+        NextAction::array(0,
+            new NextAction("faerie fire", 86.0f),
+            NULL)));
 
+    // Maintain TBC Balance DoTs.
     triggers.push_back(new TriggerNode(
         "insect swarm",
-        NextAction::array(0, new NextAction("insect swarm", ACTION_NORMAL + 2), NULL)));
+        NextAction::array(0,
+            new NextAction("insect swarm", 85.0f),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "moonfire",
-        NextAction::array(0, new NextAction("moonfire", ACTION_NORMAL + 1), NULL)));
+        NextAction::array(0,
+            new NextAction("moonfire", 84.0f),
+            NULL)));
 
-    triggers.push_back(new TriggerNode(
-        "often",
-        NextAction::array(0, new NextAction("starfire", ACTION_NORMAL), NULL)));
+    // Do NOT automatically break Moonkin Form for
+    // Healing Touch / Regrowth during normal raid combat.
+    //
+    // BalanceDruidRaidStrategy already supplies Starfire
+    // as its default combat action.
 }
 
 void BalanceDruidStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -587,7 +595,11 @@ void BalanceDruidAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigge
 
     triggers.push_back(new TriggerNode(
         "ranged high aoe",
-        NextAction::array(0, new NextAction("starfall", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction("hurricane", 84.0f),
+            NULL)));
+
+    // Starfall is not part of the TBC rotation.
 }
 
 void BalanceDruidAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -635,13 +647,19 @@ void BalanceDruidBuffStrategy::InitCombatTriggers(std::list<TriggerNode*>& trigg
 {
     DruidBuffStrategy::InitCombatTriggers(triggers);
 
+    // Maintain Moonkin whenever possible.
     triggers.push_back(new TriggerNode(
         "moonkin form",
-        NextAction::array(0, new NextAction("moonkin form", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction("moonkin form", 90.0f),
+            NULL)));
 
+    // Exact threshold instead of the legacy InnervateTrigger.
     triggers.push_back(new TriggerNode(
-        "innervate",
-        NextAction::array(0, new NextAction("innervate", ACTION_HIGH + 1), NULL)));
+        "mana below 30",
+        NextAction::array(0,
+            new NextAction("innervate", 58.0f),
+            NULL)));
 }
 
 void BalanceDruidBuffStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)

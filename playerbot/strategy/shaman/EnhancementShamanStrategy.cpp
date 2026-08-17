@@ -21,7 +21,12 @@ public:
     }
 
 private:
+#ifdef MANGOSBOT_ONE
+    // TBC has no Lava Lash.
+    ACTION_NODE_A(stormstrike, "stormstrike", "melee");
+#else
     ACTION_NODE_A(stormstrike, "stormstrike", "lava lash");
+#endif
 
     ACTION_NODE_A(lava_lash, "lava lash", "melee");
 
@@ -488,15 +493,34 @@ NextAction** EnhancementShamanStrategy::GetDefaultCombatActions()
 
 void EnhancementShamanStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
-    ShamanStrategy::InitCombatTriggers(triggers);
+    // Dedicated TBC raid melee DPS.
+    //
+    // Do not inherit ShamanStrategy automatic Healing Wave.
+    ClassStrategy::InitCombatTriggers(triggers);
 
+    // Core melee strike.
     triggers.push_back(new TriggerNode(
         "stormstrike",
-        NextAction::array(0, new NextAction("stormstrike", ACTION_NORMAL + 1), NULL)));
+        NextAction::array(0,
+            new NextAction("stormstrike", 85.0f),
+            NULL)));
 
+    // Nature-damage shock consumes Stormstrike vulnerability.
     triggers.push_back(new TriggerNode(
         "shock",
-        NextAction::array(0, new NextAction("earth shock", ACTION_NORMAL), NULL)));
+        NextAction::array(0,
+            new NextAction("earth shock", 82.0f),
+            NULL)));
+
+    // Raid utility only when the target has something useful
+    // for Purge to remove.
+    triggers.push_back(new TriggerNode(
+        "purge",
+        NextAction::array(0,
+            new NextAction("purge", 79.0f),
+            NULL)));
+
+    // Melee remains the default filler.
 }
 
 void EnhancementShamanStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -592,11 +616,11 @@ void EnhancementShamanAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& t
 
     triggers.push_back(new TriggerNode(
         "melee medium aoe",
-        NextAction::array(0, new NextAction("fire nova", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction("fire nova", 84.0f),
+            NULL)));
 
-    //triggers.push_back(new TriggerNode(
-        //"melee light aoe",
-        //NextAction::array(0, new NextAction("oil of immolation", ACTION_HIGH), NULL)));
+    // No automatic Oil of Immolation.
 }
 
 void EnhancementShamanAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -744,29 +768,57 @@ void EnhancementShamanTotemsStrategy::InitCombatTriggers(std::list<TriggerNode*>
 {
     ShamanTotemsStrategy::InitCombatTriggers(triggers);
 
-    triggers.push_back(new TriggerNode(
-        "air totem",
-        NextAction::array(0, new NextAction("windfury totem", ACTION_HIGH + 1), NULL)));
+    // ========================================================
+    // AIR: Windfury <-> Grace of Air twisting
+    // ========================================================
 
+    // Initial cast and periodic refresh.
     triggers.push_back(new TriggerNode(
-        "air totem",
-        NextAction::array(0, new NextAction("grace of air totem", ACTION_HIGH), NULL)));
+        "enhancement windfury twist",
+        NextAction::array(0,
+            new NextAction("windfury totem", 94.0f),
+            NULL)));
 
+    // Immediately follow a successful Windfury placement with
+    // Grace of Air while the Windfury party enchant persists.
     triggers.push_back(new TriggerNode(
-        "water totem",
-        NextAction::array(0, new NextAction("mana spring totem", ACTION_HIGH), NULL)));
+        "enhancement grace twist",
+        NextAction::array(0,
+            new NextAction("grace of air totem", 93.0f),
+            NULL)));
+
+
+    // ========================================================
+    // EARTH: permanent melee support
+    // ========================================================
 
     triggers.push_back(new TriggerNode(
         "earth totem",
-        NextAction::array(0, new NextAction("strength of earth totem", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction("strength of earth totem", 90.0f),
+            NULL)));
+
+
+    // ========================================================
+    // WATER: permanent mana support
+    // ========================================================
 
     triggers.push_back(new TriggerNode(
-        "fire totem aoe",
-        NextAction::array(0, new NextAction("magma totem", ACTION_HIGH), NULL)));
+        "water totem",
+        NextAction::array(0,
+            new NextAction("mana spring totem", 89.0f),
+            NULL)));
+
+
+    // ========================================================
+    // FIRE: normal single-target damage totem
+    // ========================================================
 
     triggers.push_back(new TriggerNode(
         "fire totem",
-        NextAction::array(0, new NextAction("flametongue totem", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction("searing totem", 88.0f),
+            NULL)));
 }
 
 void EnhancementShamanTotemsStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -816,7 +868,15 @@ void EnhancementShamanBuffStrategy::InitCombatTriggers(std::list<TriggerNode*>& 
 
     triggers.push_back(new TriggerNode(
         "shaman weapon",
-        NextAction::array(0, new NextAction("windfury weapon", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction("windfury weapon", 91.0f),
+            NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "lightning shield",
+        NextAction::array(0,
+            new NextAction("lightning shield", 80.0f),
+            NULL)));
 }
 
 void EnhancementShamanBuffStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -870,7 +930,14 @@ void EnhancementShamanBuffRaidStrategy::InitNonCombatTriggers(std::list<TriggerN
 
 void EnhancementShamanBoostStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
+    // Shared TBC Heroism / Bloodlust remains active.
     ShamanBoostStrategy::InitCombatTriggers(triggers);
+
+    triggers.push_back(new TriggerNode(
+        "shamanistic rage",
+        NextAction::array(0,
+            new NextAction("shamanistic rage", 88.0f),
+            NULL)));
 }
 
 void EnhancementShamanBoostStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)

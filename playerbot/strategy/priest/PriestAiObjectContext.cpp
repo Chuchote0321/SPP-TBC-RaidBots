@@ -206,6 +206,7 @@ namespace ai
                 creators["silence on enemy healer"] = [](PlayerbotAI* ai) { return new SilenceEnemyHealerTrigger(ai); };
                 creators["shadowfiend"] = [](PlayerbotAI* ai) { return new ShadowfiendTrigger(ai); };
                 creators["mind blast"] = [](PlayerbotAI* ai) { return new MindBlastTrigger(ai); };
+                creators["shadow word: death safe"] = [](PlayerbotAI* ai) { return new ShadowWordDeathSafeTrigger(ai); };
                 creators["smite"] = [](PlayerbotAI* ai) { return new SmiteTrigger(ai); };
                 creators["holy fire"] = [](PlayerbotAI* ai) { return new HolyFireTrigger(ai); };
             }

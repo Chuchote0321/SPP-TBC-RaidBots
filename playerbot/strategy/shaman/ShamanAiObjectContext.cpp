@@ -271,6 +271,10 @@ namespace ai
                 creators["party member cleanse spirit disease"] = [](PlayerbotAI* ai) { return new PartyMemberCleanseSpiritDiseaseTrigger(ai); };
                 creators["shock"] = [](PlayerbotAI* ai) { return new ShockTrigger(ai); };
                 creators["frost shock snare"] = [](PlayerbotAI* ai) { return new FrostShockSnareTrigger(ai); };
+                creators["enhancement windfury twist"] = [](PlayerbotAI* ai) { return new EnhancementWindfuryTwistTrigger(ai); };
+                creators["enhancement grace twist"] = [](PlayerbotAI* ai) { return new EnhancementGraceTwistTrigger(ai); };
+                creators["shamanistic rage"] = [](PlayerbotAI* ai) { return new ShamanisticRageTrigger(ai); };
+                creators["elemental mastery"] = [](PlayerbotAI* ai) { return new ElementalMasteryTrigger(ai); };
                 creators["heroism"] = [](PlayerbotAI* ai) { return new HeroismTrigger(ai); };
                 creators["bloodlust"] = [](PlayerbotAI* ai) { return new BloodlustTrigger(ai); };
                 creators["maelstrom weapon"] = [](PlayerbotAI* ai) { return new MaelstromWeaponTrigger(ai); };
@@ -359,6 +363,8 @@ namespace ai
                 creators["frost shock"] = [](PlayerbotAI* ai) { return new CastFrostShockAction(ai); };
                 creators["chain lightning"] = [](PlayerbotAI* ai) { return new CastChainLightningAction(ai); };
                 creators["lightning bolt"] = [](PlayerbotAI* ai) { return new CastLightningBoltAction(ai); };
+                creators["shamanistic rage"] = [](PlayerbotAI* ai) { return new CastShamanisticRageAction(ai); };
+                creators["elemental mastery"] = [](PlayerbotAI* ai) { return new CastElementalMasteryAction(ai); };
                 creators["thunderstorm"] = [](PlayerbotAI* ai) { return new CastThunderstormAction(ai); };
                 creators["heroism"] = [](PlayerbotAI* ai) { return new CastHeroismAction(ai); };
                 creators["bloodlust"] = [](PlayerbotAI* ai) { return new CastBloodlustAction(ai); };

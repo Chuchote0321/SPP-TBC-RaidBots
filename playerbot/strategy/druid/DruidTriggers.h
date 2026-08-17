@@ -92,13 +92,33 @@ namespace ai
     class FaerieFireTrigger : public DebuffTrigger
     {
     public:
-        FaerieFireTrigger(PlayerbotAI* ai) : DebuffTrigger(ai, "faerie fire") {}
+        FaerieFireTrigger(PlayerbotAI* ai) :
+            DebuffTrigger(ai, "faerie fire") {}
+
+        bool IsActive() override
+        {
+            Unit* target = GetTarget();
+
+            return target &&
+                   DebuffTrigger::IsActive() &&
+                   !ai->HasAura("faerie fire (feral)", target);
+        }
     };
 
     class FaerieFireFeralTrigger : public DebuffTrigger
     {
     public:
-        FaerieFireFeralTrigger(PlayerbotAI* ai) : DebuffTrigger(ai, "faerie fire (feral)") {}
+        FaerieFireFeralTrigger(PlayerbotAI* ai) :
+            DebuffTrigger(ai, "faerie fire (feral)") {}
+
+        bool IsActive() override
+        {
+            Unit* target = GetTarget();
+
+            return target &&
+                   DebuffTrigger::IsActive() &&
+                   !ai->HasAura("faerie fire", target);
+        }
     };
 
     class BashInterruptSpellTrigger : public InterruptSpellTrigger
@@ -227,13 +247,71 @@ namespace ai
     class LacerateTrigger : public DebuffTrigger
     {
     public:
-        LacerateTrigger(PlayerbotAI* ai) : DebuffTrigger(ai, "lacerate") {}
+        LacerateTrigger(PlayerbotAI* ai) :
+            DebuffTrigger(ai, "lacerate") {}
 
     private:
         bool IsActive() override
         {
             Unit* target = GetTarget();
-            return target && !ai->HasAura("lacerate", target, true) && !HasMaxDebuffs();
+
+            if (!target || !target->IsAlive())
+                return false;
+
+            if (HasMaxDebuffs())
+                return false;
+
+            // maxStack = true:
+            //   keep applying until Lacerate reaches maximum stack.
+            //
+            // checkIsOwner = true:
+            //   maintain this bear's own Lacerate.
+            //
+            // minDuration = 3000 ms:
+            //   at maximum stacks, refresh before expiration.
+            return !ai->HasAura(
+                "lacerate",
+                target,
+                true,
+                true,
+                -1,
+                false,
+                3000
+            );
+        }
+    };
+
+
+    class TankMangleBearTrigger : public SpellCanBeCastedTrigger
+    {
+    public:
+        TankMangleBearTrigger(PlayerbotAI* ai) :
+            SpellCanBeCastedTrigger(ai, "mangle (bear)") {}
+    };
+
+
+    class TankDemoralizingRoarTrigger : public Trigger
+    {
+    public:
+        TankDemoralizingRoarTrigger(PlayerbotAI* ai) :
+            Trigger(ai, "tank demoralizing roar") {}
+
+        bool IsActive() override
+        {
+            Unit* target =
+                AI_VALUE(Unit*, "current target");
+
+            if (!target || !target->IsAlive())
+                return false;
+
+            // Do not waste a GCD if either Druid Demo Roar
+            // or Warrior Demo Shout already covers the boss.
+            return !ai->HasAnyAuraOf(
+                target,
+                "demoralizing roar",
+                "demoralizing shout",
+                NULL
+            );
         }
     };
 

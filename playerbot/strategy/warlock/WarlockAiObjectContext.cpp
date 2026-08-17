@@ -233,6 +233,9 @@ namespace ai
                 creators["unstable affliction on attacker"] = [](PlayerbotAI* ai) { return new UnstableAfflictionOnAttackerTrigger(ai); };
                 creators["life tap"] = [](PlayerbotAI* ai) { return new LifeTapTrigger(ai); };
                 creators["drain soul"] = [](PlayerbotAI* ai) { return new DrainSoulTrigger(ai); };
+                creators["raid curse elements"] = [](PlayerbotAI* ai) { return new RaidDestructionCurseTrigger(ai, "raid curse elements", RaidDestructionCurseRole::Elements); };
+                creators["raid curse recklessness"] = [](PlayerbotAI* ai) { return new RaidDestructionCurseTrigger(ai, "raid curse recklessness", RaidDestructionCurseRole::Recklessness); };
+                creators["raid curse doom"] = [](PlayerbotAI* ai) { return new RaidDestructionCurseTrigger(ai, "raid curse doom", RaidDestructionCurseRole::Doom); };
                 creators["no curse"] = [](PlayerbotAI* ai) { return new NoCurseTrigger(ai); };
                 creators["no curse on attacker"] = [](PlayerbotAI* ai) { return new NoCurseOnAttackerTrigger(ai); };
                 creators["conflagrate"] = [](PlayerbotAI* ai) { return new ConflagrateTrigger(ai); };

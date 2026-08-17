@@ -641,27 +641,27 @@ void BeastMasteryHunterCcRaidStrategy::InitNonCombatTriggers(std::list<TriggerNo
 
 void BeastMasteryHunterStingStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
-    HunterStingStrategy::InitCombatTriggers(triggers);
+    // TBC BM raid AI:
+    // do not spend rotation time on Serpent Sting.
+    // Viper Sting remains available automatically on mana targets.
+    triggers.push_back(new TriggerNode(
+        "no stings",
+        NextAction::array(0,
+            new NextAction("viper sting", ACTION_NORMAL + 5),
+            NULL)));
 }
-
 void BeastMasteryHunterStingPveStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BeastMasteryHunterStingStrategy::InitCombatTriggers(triggers);
-    HunterStingPveStrategy::InitCombatTriggers(triggers);
 }
-
 void BeastMasteryHunterStingPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BeastMasteryHunterStingStrategy::InitCombatTriggers(triggers);
-    HunterStingPvpStrategy::InitCombatTriggers(triggers);
 }
-
 void BeastMasteryHunterStingRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     BeastMasteryHunterStingStrategy::InitCombatTriggers(triggers);
-    HunterStingRaidStrategy::InitCombatTriggers(triggers);
 }
-
 void BeastMasteryHunterAspectStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     HunterAspectStrategy::InitCombatTriggers(triggers);

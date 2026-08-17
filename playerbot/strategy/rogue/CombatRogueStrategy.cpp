@@ -416,6 +416,12 @@ void CombatRoguePoisonsRaidStrategy::InitNonCombatTriggers(std::list<TriggerNode
 void CombatRogueStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     RogueStrategy::InitCombatTriggers(triggers);
+    // TBC raid: 5 CP Expose Armor is the highest-priority finisher.
+    triggers.push_back(new TriggerNode(
+        "expose armor 5 cp",
+        NextAction::array(0,
+            new NextAction("expose armor", ACTION_HIGH + 5),
+            NULL)));
 
     triggers.push_back(new TriggerNode(
         "riposte",

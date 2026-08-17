@@ -107,6 +107,44 @@ namespace ai
         }
     };
 
+    class CastArmsSunderArmorAction : public CastMeleeDebuffSpellAction
+    {
+    public:
+        CastArmsSunderArmorAction(PlayerbotAI* ai) :
+            CastMeleeDebuffSpellAction(ai, "sunder armor")
+        {
+            range = ATTACK_DISTANCE;
+        }
+
+        bool isUseful() override
+        {
+            Unit* target = GetTarget();
+
+            if (!target || target->IsDead())
+                return false;
+
+            if (ai->HasAura("expose armor", target, true))
+                return false;
+
+            uint32 sunderId =
+                AI_VALUE2(uint32, "spell id", "sunder armor");
+
+            if (!sunderId)
+                return false;
+
+            Aura* aura = ai->GetAura(sunderId, target);
+
+            if (!aura)
+                return true;
+
+            uint32 stacks = aura->GetHolder()->GetStackAmount();
+
+            if (stacks < 5)
+                return true;
+
+            return aura->GetHolder()->GetAuraDuration() < 6000;
+        }
+    };
     class CastSunderArmorAction : public CastMeleeDebuffSpellAction
     {
     public:
@@ -119,6 +157,12 @@ namespace ai
         {
             Unit* target = GetTarget();
             if (!target)
+                return false;
+
+            // Rogue 5CP Expose Armor is the raid armor duty
+            // once active. Never waste rage/GCD attempting
+            // Sunder while Expose Armor is present.
+            if (ai->HasAura("expose armor", target))
                 return false;
 
             const bool isTank = ai->IsTank(bot);

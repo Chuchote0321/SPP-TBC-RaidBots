@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include "playerbot/strategy/triggers/GenericTriggers.h"
 
 namespace ai
@@ -34,6 +35,119 @@ namespace ai
     public:
         NoCurseOnAttackerTrigger(PlayerbotAI* ai) : Trigger(ai, "no curse on attacker") {}
         bool IsActive() override;
+    };
+
+    enum class RaidDestructionCurseRole : uint8
+    {
+        Elements = 0,
+        Recklessness = 1,
+        Doom = 2
+    };
+
+    class RaidDestructionCurseTrigger : public Trigger
+    {
+    public:
+        RaidDestructionCurseTrigger(
+            PlayerbotAI* ai,
+            const std::string& name,
+            RaidDestructionCurseRole role) :
+            Trigger(ai, name),
+            role(role)
+        {
+        }
+
+        bool IsActive() override
+        {
+            Unit* target =
+                AI_VALUE(Unit*, "current target");
+
+            if (!target || !target->IsAlive())
+                return false;
+
+            std::vector<Player*> warlocks;
+
+            for (Player* player : ai->GetPlayersInGroup())
+            {
+                if (player &&
+                    player->IsAlive() &&
+                    player->getClass() == CLASS_WARLOCK)
+                {
+                    warlocks.push_back(player);
+                }
+            }
+
+            // Defensive fallback for an unusual group query.
+            if (bot->IsAlive() &&
+                bot->getClass() == CLASS_WARLOCK &&
+                std::find(
+                    warlocks.begin(),
+                    warlocks.end(),
+                    bot
+                ) == warlocks.end())
+            {
+                warlocks.push_back(bot);
+            }
+
+            std::sort(
+                warlocks.begin(),
+                warlocks.end(),
+                [](Player* a, Player* b)
+                {
+                    return a->GetObjectGuid() <
+                           b->GetObjectGuid();
+                }
+            );
+
+            size_t myIndex = warlocks.size();
+
+            for (size_t i = 0; i < warlocks.size(); ++i)
+            {
+                if (warlocks[i] == bot)
+                {
+                    myIndex = i;
+                    break;
+                }
+            }
+
+            if (myIndex >= warlocks.size())
+                return false;
+
+            // With three warlocks:
+            // 0 = Elements
+            // 1 = Recklessness
+            // 2 = Doom
+            //
+            // With fewer alive warlocks we keep the important
+            // raid utility curses first.
+            if ((myIndex % 3) !=
+                static_cast<size_t>(role))
+            {
+                return false;
+            }
+
+            const char* curse = nullptr;
+
+            switch (role)
+            {
+                case RaidDestructionCurseRole::Elements:
+                    curse = "curse of the elements";
+                    break;
+
+                case RaidDestructionCurseRole::Recklessness:
+                    curse = "curse of recklessness";
+                    break;
+
+                case RaidDestructionCurseRole::Doom:
+                    curse = "curse of doom";
+                    break;
+            }
+
+            return curse &&
+                   !ai->HasAura(curse, target);
+        }
+
+    private:
+        RaidDestructionCurseRole role;
     };
 
     DEBUFF_TRIGGER_A(CorruptionTrigger, "corruption");

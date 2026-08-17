@@ -358,6 +358,34 @@ void SurvivalHunterAspectRaidStrategy::InitNonCombatTriggers(std::list<TriggerNo
 void SurvivalHunterStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     HunterStrategy::InitCombatTriggers(triggers);
+
+    // TBC raid Survival:
+    // Expose Weakness is passive and is maintained by ranged
+    // critical hits. Keep the ranged attack cycle dense while
+    // preserving Auto Shot as the inherited default action.
+
+    // Kill Command consumes hunter crit procs through the pet
+    // and should be used immediately when available.
+    triggers.push_back(new TriggerNode(
+        "kill command",
+        NextAction::array(0,
+            new NextAction("kill command", 84.0f),
+            NULL)));
+
+    // Multi-Shot is part of the normal raid damage cycle and
+    // provides another ranged hit/crit opportunity.
+    triggers.push_back(new TriggerNode(
+        "multi-shot",
+        NextAction::array(0,
+            new NextAction("multi-shot", 83.0f),
+            NULL)));
+
+    // Main filler between Auto Shots.
+    triggers.push_back(new TriggerNode(
+        "steady shot",
+        NextAction::array(0,
+            new NextAction("steady shot", 82.0f),
+            NULL)));
 }
 
 void SurvivalHunterStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -449,7 +477,20 @@ void SurvivalHunterRaidStrategy::InitDeadTriggers(std::list<TriggerNode*>& trigg
 
 void SurvivalHunterAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
-    HunterAoeStrategy::InitCombatTriggers(triggers);
+    AoeStrategy::InitCombatTriggers(triggers);
+
+    // Stay at ranged position in raids.
+    triggers.push_back(new TriggerNode(
+        "multi-shot",
+        NextAction::array(0,
+            new NextAction("multi-shot", 84.0f),
+            NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "ranged high aoe",
+        NextAction::array(0,
+            new NextAction("volley", 82.0f),
+            NULL)));
 }
 
 void SurvivalHunterAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -650,8 +691,14 @@ void SurvivalHunterStingPvpStrategy::InitCombatTriggers(std::list<TriggerNode*>&
 
 void SurvivalHunterStingRaidStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
-    SurvivalHunterStingStrategy::InitCombatTriggers(triggers);
-    HunterStingRaidStrategy::InitCombatTriggers(triggers);
+    // TBC raid support hunter:
+    // do not automatically maintain Serpent Sting.
+    // Viper Sting remains available on valid mana targets.
+    triggers.push_back(new TriggerNode(
+        "no stings",
+        NextAction::array(0,
+            new NextAction("viper sting", ACTION_NORMAL + 5),
+            NULL)));
 }
 
 void SurvivalHunterAspectStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)

@@ -567,7 +567,7 @@ void ProtectionPaladinStrategy::InitCombatTriggers(std::list<TriggerNode*>& trig
 {
     PaladinStrategy::InitCombatTriggers(triggers);
 
-    // A raid tank must never keep Salvation.
+    // Raid tank must never keep Salvation.
     triggers.push_back(new TriggerNode(
         "has blessing of salvation",
         NextAction::array(0,
@@ -580,29 +580,44 @@ void ProtectionPaladinStrategy::InitCombatTriggers(std::list<TriggerNode*>& trig
             new NextAction("remove greater blessing of salvation", ACTION_EMERGENCY),
             NULL)));
 
-    // Existing action-node fallback resolves the TBC taunt path.
     triggers.push_back(new TriggerNode(
         "lose aggro",
         NextAction::array(0,
             new NextAction("hand of reckoning", ACTION_PASSTROUGH),
             NULL)));
 
-    // Protect endangered raid members when appropriate.
     triggers.push_back(new TriggerNode(
         "protect party member",
         NextAction::array(0,
             new NextAction("blessing of protection on party", ACTION_CRITICAL_HEAL),
             NULL)));
 
-    // Core TBC protection rotation.
+    // Primary mitigation.
     triggers.push_back(new TriggerNode(
         "holy shield",
         NextAction::array(0,
-            new NextAction("holy shield", 84.0f),
+            new NextAction("holy shield", 85.0f),
             NULL)));
 
-    // Consecration is part of the normal tank threat cycle,
-    // not only an AOE-only tool.
+    // Raid judgement coordination:
+    // 1. establish Judgement of Wisdom only when actually missing;
+    // 2. temporarily use Seal of Wisdom;
+    // 3. cast Judgement;
+    // 4. normal seal logic returns to Seal of Vengeance;
+    // 5. Retribution Crusader Strike should normally refresh Wisdom.
+    triggers.push_back(new TriggerNode(
+        "protection wisdom seal",
+        NextAction::array(0,
+            new NextAction("seal of wisdom", 84.0f),
+            NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "protection wisdom judgement",
+        NextAction::array(0,
+            new NextAction("judgement", 84.0f),
+            NULL)));
+
+    // Main tank threat cycle.
     triggers.push_back(new TriggerNode(
         "consecration",
         NextAction::array(0,
@@ -615,24 +630,18 @@ void ProtectionPaladinStrategy::InitCombatTriggers(std::list<TriggerNode*>& trig
             new NextAction("judgement", 81.0f),
             NULL)));
 
-    // Maintain the primary tanking seal.
-    // Do not automatically replace it with Seal of Wisdom
-    // merely because mana reaches a medium threshold.
     triggers.push_back(new TriggerNode(
         "seal",
         NextAction::array(0,
             new NextAction("seal of vengeance", 80.0f),
             NULL)));
 
-    // Useful against valid undead/demon targets, but never
-    // ahead of the core mitigation/threat cycle.
     triggers.push_back(new TriggerNode(
         "exorcism",
         NextAction::array(0,
             new NextAction("exorcism", 60.0f),
             NULL)));
 }
-
 void ProtectionPaladinStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
 {
     PaladinStrategy::InitNonCombatTriggers(triggers);

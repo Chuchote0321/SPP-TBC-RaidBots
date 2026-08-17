@@ -230,7 +230,13 @@ namespace ai
 
         virtual bool isUseful() override
         {
-            return (!bot->GetGroup() || ai->HasStrategy("totem air wrath", BotState::BOT_STATE_COMBAT)) && CastTotemAction::isUseful();
+            // Elemental is the caster-group shaman specialization.
+            // Allow its normal totem strategy to use Wrath of Air
+            // without requiring a separate manual totem strategy.
+            return (!bot->GetGroup() ||
+                    ai->HasStrategy("elemental", BotState::BOT_STATE_COMBAT) ||
+                    ai->HasStrategy("totem air wrath", BotState::BOT_STATE_COMBAT)) &&
+                   CastTotemAction::isUseful();
         }
 	};
 
@@ -307,7 +313,12 @@ namespace ai
 
         virtual bool isUseful() override
         {
-            return (!bot->GetGroup() || ai->HasStrategy("totem air grace", BotState::BOT_STATE_COMBAT)) && CastTotemAction::isUseful();
+            // Enhancement uses Grace of Air as the second half
+            // of the TBC Windfury / Grace totem twist.
+            return (!bot->GetGroup() ||
+                    ai->HasStrategy("enhancement", BotState::BOT_STATE_COMBAT) ||
+                    ai->HasStrategy("totem air grace", BotState::BOT_STATE_COMBAT)) &&
+                   CastTotemAction::isUseful();
         }
     };
 
@@ -450,6 +461,9 @@ namespace ai
     public:
         CastThunderstormAction(PlayerbotAI* ai) : CastMeleeSpellAction(ai, "thunderstorm") {}
     };
+
+    BUFF_ACTION(CastShamanisticRageAction, "shamanistic rage");
+    BUFF_ACTION(CastElementalMasteryAction, "elemental mastery");
 
     class CastHeroismAction : public CastBuffSpellAction
     {

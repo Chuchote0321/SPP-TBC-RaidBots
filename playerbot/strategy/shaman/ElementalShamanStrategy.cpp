@@ -491,11 +491,29 @@ NextAction** ElementalShamanStrategy::GetDefaultCombatActions()
 
 void ElementalShamanStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
-    ShamanStrategy::InitCombatTriggers(triggers);
+    // Dedicated TBC raid caster:
+    //
+    // Do not inherit ShamanStrategy's automatic Healing Wave
+    // triggers. Healing is handled by the raid healers.
+    ClassStrategy::InitCombatTriggers(triggers);
 
+    // Chain Lightning on cooldown provides the main active
+    // spell above Lightning Bolt filler.
     triggers.push_back(new TriggerNode(
-        "shock",
-        NextAction::array(0, new NextAction("earth shock", ACTION_NORMAL), NULL)));
+        "chain lightning",
+        NextAction::array(0,
+            new NextAction("chain lightning", 84.0f),
+            NULL)));
+
+    // Preserve raid utility without spending normal GCDs on
+    // shocks or off-healing.
+    triggers.push_back(new TriggerNode(
+        "purge",
+        NextAction::array(0,
+            new NextAction("purge", 79.0f),
+            NULL)));
+
+    // Lightning Bolt remains GetDefaultCombatActions() filler.
 }
 
 void ElementalShamanStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -599,7 +617,11 @@ void ElementalShamanAoeStrategy::InitCombatTriggers(std::list<TriggerNode*>& tri
 
     triggers.push_back(new TriggerNode(
         "ranged light aoe",
-        NextAction::array(0, new NextAction("chain lightning", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction("chain lightning", 85.0f),
+            NULL)));
+
+    // Do not replace Totem of Wrath with Magma/Searing Totem.
 }
 
 void ElementalShamanAoeStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -743,29 +765,32 @@ void ElementalShamanTotemsStrategy::InitCombatTriggers(std::list<TriggerNode*>& 
 {
     ShamanTotemsStrategy::InitCombatTriggers(triggers);
 
-    triggers.push_back(new TriggerNode(
-        "air totem",
-        NextAction::array(0, new NextAction("windfury totem", ACTION_HIGH + 1), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "air totem",
-        NextAction::array(0, new NextAction("wrath of air totem", ACTION_HIGH), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "water totem",
-        NextAction::array(0, new NextAction("mana spring totem", ACTION_HIGH), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "earth totem",
-        NextAction::array(0, new NextAction("strength of earth totem", ACTION_HIGH), NULL)));
-
-    triggers.push_back(new TriggerNode(
-        "fire totem aoe",
-        NextAction::array(0, new NextAction("searing totem", ACTION_HIGH), NULL)));
-
+    // TBC caster-group package.
+    //
+    // Fire slot: always preserve Totem of Wrath.
     triggers.push_back(new TriggerNode(
         "fire totem",
-        NextAction::array(0, new NextAction("totem of wrath", ACTION_HIGH), NULL)));
+        NextAction::array(0,
+            new NextAction("totem of wrath", 90.0f),
+            NULL)));
+
+    // Air slot: caster haste instead of Windfury.
+    triggers.push_back(new TriggerNode(
+        "air totem",
+        NextAction::array(0,
+            new NextAction("wrath of air totem", 89.0f),
+            NULL)));
+
+    // Water slot: sustained group mana.
+    triggers.push_back(new TriggerNode(
+        "water totem",
+        NextAction::array(0,
+            new NextAction("mana spring totem", 88.0f),
+            NULL)));
+
+    // Earth slot is intentionally left situational.
+    // Tremor/Stoneskin can still be selected by manual raid
+    // strategy without wasting a default GCD every pull.
 }
 
 void ElementalShamanTotemsStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
@@ -885,7 +910,15 @@ void ElementalShamanBuffRaidStrategy::InitNonCombatTriggers(std::list<TriggerNod
 
 void ElementalShamanBoostStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
+    // Retains TBC Heroism/Bloodlust from the shared Shaman
+    // boost strategy.
     ShamanBoostStrategy::InitCombatTriggers(triggers);
+
+    triggers.push_back(new TriggerNode(
+        "elemental mastery",
+        NextAction::array(0,
+            new NextAction("elemental mastery", 88.0f),
+            NULL)));
 }
 
 void ElementalShamanBoostStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)

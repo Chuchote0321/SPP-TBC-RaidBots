@@ -34,6 +34,73 @@ namespace ai
     DEBUFF_TRIGGER(JudgementOfLightTrigger, "judgement of light");
     DEBUFF_TRIGGER(JudgementOfWisdomTrigger, "judgement of wisdom");
 
+    class ProtectionWisdomSealTrigger : public Trigger
+    {
+    public:
+        ProtectionWisdomSealTrigger(PlayerbotAI* ai) :
+            Trigger(ai, "protection wisdom seal") {}
+
+        bool IsActive() override
+        {
+            Unit* target = AI_VALUE(Unit*, "current target");
+
+            if (!target || target->IsDead())
+                return false;
+
+            // TBC Judgement of Wisdom ranks.
+            bool hasWisdomJudgement =
+                target->HasAura(20186) ||
+                target->HasAura(20354) ||
+                target->HasAura(20355) ||
+                target->HasAura(27164);
+
+            if (hasWisdomJudgement)
+                return false;
+
+            // We already switched to Seal of Wisdom:
+            // the next stage must be Judgement, not another seal.
+            if (ai->HasAnyAuraOf(bot, "seal of wisdom", NULL))
+                return false;
+
+            uint32 sealId =
+                AI_VALUE2(uint32, "spell id", "seal of wisdom");
+
+            return sealId && bot->IsSpellReady(sealId);
+        }
+    };
+
+    class ProtectionWisdomJudgementTrigger : public Trigger
+    {
+    public:
+        ProtectionWisdomJudgementTrigger(PlayerbotAI* ai) :
+            Trigger(ai, "protection wisdom judgement") {}
+
+        bool IsActive() override
+        {
+            Unit* target = AI_VALUE(Unit*, "current target");
+
+            if (!target || target->IsDead())
+                return false;
+
+            bool hasWisdomJudgement =
+                target->HasAura(20186) ||
+                target->HasAura(20354) ||
+                target->HasAura(20355) ||
+                target->HasAura(27164);
+
+            if (hasWisdomJudgement)
+                return false;
+
+            if (!ai->HasAnyAuraOf(bot, "seal of wisdom", NULL))
+                return false;
+
+            uint32 judgementId =
+                AI_VALUE2(uint32, "spell id", "judgement");
+
+            return judgementId && bot->IsSpellReady(judgementId);
+        }
+    };
+
     class ConsecrationTrigger : public SpellNoCooldownTrigger
     {
     public:
