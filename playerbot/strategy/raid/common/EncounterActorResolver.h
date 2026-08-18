@@ -5,9 +5,10 @@
 
 class Player;
 
+class PlayerbotAI;
+
 namespace ai
 {
-    class PlayerbotAI;
 
     struct EncounterActor
     {

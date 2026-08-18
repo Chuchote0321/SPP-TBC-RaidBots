@@ -5,9 +5,10 @@
 class Creature;
 class Unit;
 
+class PlayerbotAI;
+
 namespace ai
 {
-    class PlayerbotAI;
 
     class HighKingMaulgarEncounter
     {

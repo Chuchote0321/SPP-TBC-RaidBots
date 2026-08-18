@@ -8,7 +8,7 @@
 #include "AI/ScriptDevAI/include/sc_grid_searchers.h"
 #include "Maps/InstanceData.h"
 #include "Spells/Spell.h"
-#include "strategy/AiObjectContext.h"
+#include "playerbot/strategy/AiObjectContext.h"
 
 using namespace ai;
 

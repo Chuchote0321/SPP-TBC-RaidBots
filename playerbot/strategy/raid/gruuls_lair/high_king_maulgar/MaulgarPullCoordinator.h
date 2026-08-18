@@ -2,9 +2,10 @@
 
 #include "playerbot/strategy/raid/common/EncounterTypes.h"
 
+class PlayerbotAI;
+
 namespace ai
 {
-    class PlayerbotAI;
 
     class MaulgarPullCoordinator
     {

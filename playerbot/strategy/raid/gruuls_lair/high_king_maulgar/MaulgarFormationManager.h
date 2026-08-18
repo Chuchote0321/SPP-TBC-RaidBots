@@ -5,9 +5,10 @@
 class Creature;
 class Unit;
 
+class PlayerbotAI;
+
 namespace ai
 {
-    class PlayerbotAI;
 
     enum class MaulgarTankAnchorRole : uint8
     {
