@@ -2,6 +2,7 @@
 #include "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/MaulgarPullCoordinator.h"
 
 #include "playerbot/strategy/raid/common/EncounterActorResolver.h"
+#include "playerbot/strategy/raid/common/EncounterTrace.h"
 #include "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/MaulgarFixedPositions.h"
 #include "playerbot/PlayerbotAI.h"
 
@@ -450,6 +451,17 @@ namespace
                     tank->GetObjectGuid().GetCounter(),
                     lane);
 
+                EncounterTrace::Event(
+                    ai,
+                    "MAULGAR",
+                    "MISDIRECT_CAST",
+                    "mode=PREPULL hunter=%s hunterGuid=%u target=%s targetGuid=%u lane=%u",
+                    ai->GetBot()->GetName(),
+                    self,
+                    tank->GetName(),
+                    tank->GetObjectGuid().GetCounter(),
+                    lane);
+
                 return EncounterOverrideResult::Handled;
             }
 
@@ -519,6 +531,35 @@ EncounterOverrideResult MaulgarPullCoordinator::UpdatePrePull(PlayerbotAI* ai)
     EncounterActor mage = ResolveMageTank(ai, roster);
     EncounterActor olmWarlock = ResolveOlmWarlock(ai, roster);
 
+    EncounterActor feral =
+        EncounterActorResolver::Find(ai, roster.feralTank);
+    EncounterActor protWar =
+        EncounterActorResolver::Find(ai, roster.protWarTank);
+    EncounterActor balance =
+        EncounterActorResolver::Find(ai, roster.balanceTank);
+    EncounterActor protPal =
+        EncounterActorResolver::Find(ai, roster.protPalTank);
+
+    EncounterTrace::Assignment(ai, "MAULGAR", "MAULGAR_MT", feral);
+    EncounterTrace::Assignment(ai, "MAULGAR", "BLINDEYE_TANK", protWar);
+    EncounterTrace::Assignment(ai, "MAULGAR", "KIGGLER_TANK", balance);
+    EncounterTrace::Assignment(ai, "MAULGAR", "FELHUNTER_PALADIN", protPal);
+    EncounterTrace::Assignment(ai, "MAULGAR", "KROSH_CONTROLLER", mage);
+    EncounterTrace::Assignment(ai, "MAULGAR", "OLM_WARLOCK", olmWarlock);
+
+    EncounterTrace::ProtectedHuman(ai, "MAULGAR", "KROSH_CONTROLLER", mage);
+    EncounterTrace::ProtectedHuman(ai, "MAULGAR", "OLM_WARLOCK", olmWarlock);
+
+    for (uint8 traceLane = 0; traceLane < 3; ++traceLane)
+    {
+        EncounterActor hunter =
+            EncounterActorResolver::Find(ai, roster.hunters[traceLane]);
+
+        char role[32];
+        snprintf(role, sizeof(role), "HUNTER_MD_%u", traceLane);
+        EncounterTrace::Assignment(ai, "MAULGAR", role, hunter);
+    }
+
     // ------------------------------------------------------------------
     // HUMAN MAGE TANK
     //
@@ -529,6 +570,15 @@ EncounterOverrideResult MaulgarPullCoordinator::UpdatePrePull(PlayerbotAI* ai)
     // ------------------------------------------------------------------
     if (mage.IsValid() && mage.IsHuman())
     {
+        EncounterTrace::EventOnce(
+            ai,
+            "MAULGAR",
+            "human-mage-wait",
+            "PULL_ARMED",
+            "mode=HUMAN_MAGE_WAIT actor=%s actorGuid=%u huntersHeld=1",
+            mage.player ? mage.player->GetName() : "UNKNOWN",
+            mage.LowGuid());
+
         return EncounterOverrideResult::BlockNormal;
     }
 
@@ -549,6 +599,15 @@ EncounterOverrideResult MaulgarPullCoordinator::UpdatePrePull(PlayerbotAI* ai)
     if (!allActorsReady || !mdReady)
         return EncounterOverrideResult::BlockNormal;
 
+    EncounterTrace::EventOnce(
+        ai,
+        "MAULGAR",
+        "bot-pull-armed",
+        "PULL_ARMED",
+        "mode=BOT_MAGE raidIndex=%d allActorsReady=1 mdReady=1 mageGuid=%u",
+        int(state->raidIndex),
+        mage.LowGuid());
+
     if (!mage.IsValid() || !mage.IsBot())
         return EncounterOverrideResult::BlockNormal;
 
@@ -568,6 +627,16 @@ EncounterOverrideResult MaulgarPullCoordinator::UpdatePrePull(PlayerbotAI* ai)
                 "release three Hunter MD lanes + Olm Warlock",
                 ai->GetBot()->GetName(),
                 self);
+
+            EncounterTrace::Event(
+                ai,
+                "MAULGAR",
+                "PULL_GO",
+                "source=FROSTBOLT mage=%s mageGuid=%u target=KROSH targetGuid=%u raidIndex=%d",
+                ai->GetBot()->GetName(),
+                self,
+                krosh->GetObjectGuid().GetCounter(),
+                int(state->raidIndex));
 
             return EncounterOverrideResult::Handled;
         }
@@ -622,6 +691,15 @@ EncounterOverrideResult MaulgarPullCoordinator::UpdatePrePull(PlayerbotAI* ai)
                     "[EncounterAI][Maulgar][Pull] Olm opener Warlock=%s guid=%u",
                     ai->GetBot()->GetName(),
                     self);
+
+                EncounterTrace::Event(
+                    ai,
+                    "MAULGAR",
+                    "OLM_OPENER",
+                    "warlock=%s warlockGuid=%u target=OLM targetGuid=%u",
+                    ai->GetBot()->GetName(),
+                    self,
+                    olm->GetObjectGuid().GetCounter());
 
                 return EncounterOverrideResult::Handled;
             }
@@ -688,6 +766,18 @@ EncounterOverrideResult MaulgarPullCoordinator::UpdateOpening(PlayerbotAI* ai)
                 if (ai->CastSpell(MISDIRECTION, tank))
                 {
                     state->hunterMdReady[lane] = true;
+
+                    EncounterTrace::Event(
+                        ai,
+                        "MAULGAR",
+                        "MISDIRECT_CAST",
+                        "mode=HUMAN_PULL hunter=%s hunterGuid=%u target=%s targetGuid=%u lane=%u",
+                        ai->GetBot()->GetName(),
+                        self,
+                        tank->GetName(),
+                        tank->GetObjectGuid().GetCounter(),
+                        lane);
+
                     return EncounterOverrideResult::Handled;
                 }
             }
@@ -699,6 +789,15 @@ EncounterOverrideResult MaulgarPullCoordinator::UpdateOpening(PlayerbotAI* ai)
                 sLog.outDetail(
                     "[EncounterAI][Maulgar][Pull] Hunter %s lane=%u MD opener complete",
                     ai->GetBot()->GetName(),
+                    lane);
+
+                EncounterTrace::Event(
+                    ai,
+                    "MAULGAR",
+                    "MISDIRECT_CLEAR",
+                    "hunter=%s hunterGuid=%u lane=%u openerComplete=1",
+                    ai->GetBot()->GetName(),
+                    self,
                     lane);
 
                 return EncounterOverrideResult::NotHandled;

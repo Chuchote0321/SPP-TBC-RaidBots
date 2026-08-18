@@ -1,6 +1,7 @@
 #include "botpch.h"
 #include "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/HighKingMaulgarEncounter.h"
 #include "playerbot/strategy/raid/common/EncounterActorResolver.h"
+#include "playerbot/strategy/raid/common/EncounterTrace.h"
 #include "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/MaulgarFormationManager.h"
 #include "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/MaulgarPullCoordinator.h"
 #include "playerbot/PlayerbotAI.h"
@@ -941,6 +942,8 @@ EncounterOverrideResult HighKingMaulgarEncounter::Update(PlayerbotAI* ai)
     const uint32 encounterState =
         instance->GetData(EncounterConstants::TYPE_MAULGAR_EVENT);
 
+    EncounterTrace::EncounterState(ai, "MAULGAR", encounterState);
+
     // NOT_STARTED is now an active pre-pull state: exact fixed anchors,
     // Misdirection arming, and Mage/Hunter synchronized pull barrier.
     if (encounterState == 0) // NOT_STARTED
@@ -1023,6 +1026,17 @@ EncounterOverrideResult HighKingMaulgarEncounter::Update(PlayerbotAI* ai)
 
     EncounterActor humanOlmWarlock = FindProtectedHumanWarlock(ai);
     EncounterActor primaryBotWarlock = FirstPresentBotWarlock(ai);
+
+    EncounterTrace::Assignment(ai, "MAULGAR", "MAULGAR_MT", maulgarTank);
+    EncounterTrace::Assignment(ai, "MAULGAR", "BLINDEYE_TANK", blindeyeWarrior);
+    EncounterTrace::Assignment(ai, "MAULGAR", "FELHUNTER_PALADIN", felhunterPaladin);
+    EncounterTrace::Assignment(ai, "MAULGAR", "KIGGLER_TANK", kigglerTank);
+    EncounterTrace::Assignment(ai, "MAULGAR", "KROSH_CONTROLLER", kroshController);
+    EncounterTrace::Assignment(ai, "MAULGAR", "OLM_HUMAN_WARLOCK", humanOlmWarlock);
+    EncounterTrace::Assignment(ai, "MAULGAR", "OLM_BOT_WARLOCK", primaryBotWarlock);
+
+    EncounterTrace::ProtectedHuman(ai, "MAULGAR", "KROSH_CONTROLLER", kroshController);
+    EncounterTrace::ProtectedHuman(ai, "MAULGAR", "OLM_WARLOCK", humanOlmWarlock);
 
     // If the protected human Warlock has already enslaved a Fel Stalker, the
     // Encounter layer may drive the enslaved creature itself to Krosh/Maulgar.
