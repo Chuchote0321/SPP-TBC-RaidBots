@@ -38,8 +38,6 @@
 #include "strategy/values/LootValues.h"
 #include "strategy/values/AttackersValue.h"
 #include "strategy/raid/common/EncounterManager.h"
-#include "strategy/raid/common/EncounterManager.h"
-#include "strategy/raid/common/EncounterManager.h"
 #include "Entities/Transports.h"
 #include "Guilds/GuildMgr.h"
 #include "Chat/ChannelMgr.h"
@@ -2054,24 +2052,6 @@ void PlayerbotAI::DoNextAction(bool min)
 
     bool minimal = !AllowActivity();
 
-    // Raid encounter overlay. HARD/BLOCK results consume this tick;
-    // NotHandled falls through to the existing Normal Rotation.
-    EncounterOverrideResult encounterResult = EncounterManager::Instance().Update(this);
-    if (encounterResult == EncounterOverrideResult::Handled ||
-        encounterResult == EncounterOverrideResult::BlockNormal)
-    {
-        SetAIInternalUpdateDelay(sPlayerbotAIConfig.reactDelay);
-        return;
-    }
-    // Raid encounter overlay. HARD/BLOCK results consume this tick;
-    // NotHandled falls through to the existing Normal Rotation.
-    EncounterOverrideResult encounterResult = EncounterManager::Instance().Update(this);
-    if (encounterResult == EncounterOverrideResult::Handled ||
-        encounterResult == EncounterOverrideResult::BlockNormal)
-    {
-        SetAIInternalUpdateDelay(sPlayerbotAIConfig.reactDelay);
-        return;
-    }
     // Raid encounter overlay. HARD/BLOCK results consume this tick;
     // NotHandled falls through to the existing Normal Rotation.
     EncounterOverrideResult encounterResult = EncounterManager::Instance().Update(this);
