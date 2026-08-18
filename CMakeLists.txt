@@ -41,6 +41,27 @@ file(GLOB Playerbot_Strategy ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/strategy/*.cp
     source_group("Player Bot\\Strategies" FILES ${Playerbot_Strategy})
     LIST(APPEND LIBRARY_SRCS ${Playerbot_Strategy})
 
+# Raid encounter tactics. Recursion is deliberately scoped to this subtree.
+file(GLOB_RECURSE Playerbot_RaidTactics
+    ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/strategy/raid/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/strategy/raid/*.h)
+    source_group("Player Bot\\Strategies\\Raid" FILES ${Playerbot_RaidTactics})
+    LIST(APPEND LIBRARY_SRCS ${Playerbot_RaidTactics})
+
+# Raid encounter tactics. Recursion is deliberately scoped to this subtree.
+file(GLOB_RECURSE Playerbot_RaidTactics
+    ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/strategy/raid/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/strategy/raid/*.h)
+    source_group("Player Bot\\Strategies\\Raid" FILES ${Playerbot_RaidTactics})
+    LIST(APPEND LIBRARY_SRCS ${Playerbot_RaidTactics})
+
+# Raid encounter tactics. Recursion is deliberately scoped to this subtree.
+file(GLOB_RECURSE Playerbot_RaidTactics
+    ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/strategy/raid/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/strategy/raid/*.h)
+    source_group("Player Bot\\Strategies\\Raid" FILES ${Playerbot_RaidTactics})
+    LIST(APPEND LIBRARY_SRCS ${Playerbot_RaidTactics})
+
 #Action files
 file(GLOB Playerbot_Actions ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/strategy/actions/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/strategy/actions/*.h)
     source_group("Player Bot\\Strategies\\Actions" FILES ${Playerbot_Actions})
