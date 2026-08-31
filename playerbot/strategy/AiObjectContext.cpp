@@ -1,4 +1,3 @@
-
 #include "playerbot/playerbot.h"
 #include "Action.h"
 #include "AiObjectContext.h"
@@ -12,6 +11,7 @@
 #include "actions/WorldPacketActionContext.h"
 #include "values/ValueContext.h"
 #include "values/SharedValueContext.h"
+#include "raid/common/RaidObjectContexts.h"
 
 
 using namespace ai;
@@ -23,14 +23,17 @@ AiObjectContext::AiObjectContext(PlayerbotAI* ai) : PlayerbotAIAware(ai)
     strategyContexts.Add(new AssistStrategyContext());
     strategyContexts.Add(new QuestStrategyContext());
     strategyContexts.Add(new FishStrategyContext());
+    strategyContexts.Add(new RaidStrategyContext());
 
     actionContexts.Add(new ActionContext());
     actionContexts.Add(new ChatActionContext());
     actionContexts.Add(new WorldPacketActionContext());
+    actionContexts.Add(new RaidActionContext());
 
     triggerContexts.Add(new TriggerContext());
     triggerContexts.Add(new ChatTriggerContext());
     triggerContexts.Add(new WorldPacketTriggerContext());
+    triggerContexts.Add(new RaidTriggerContext());
 
     valueContexts.Add(new ValueContext());
 
