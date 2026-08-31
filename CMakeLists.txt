@@ -61,14 +61,6 @@ file(GLOB Playerbot_Values ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/strategy/values
     source_group("Player Bot\\Strategies\\Values" FILES ${Playerbot_Values})
     LIST(APPEND LIBRARY_SRCS ${Playerbot_Values})
 
-#Raid compatibility and encounter strategy files
-#Rerun CMake after adding new raid source files.
-file(GLOB_RECURSE Playerbot_Raid
-    ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/strategy/raid/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/playerbot/strategy/raid/*.h)
-    source_group("Player Bot\\Strategies\\Raid" FILES ${Playerbot_Raid})
-    LIST(APPEND LIBRARY_SRCS ${Playerbot_Raid})
-
 ## Class files
 
 #Druid AI
@@ -185,13 +177,13 @@ target_include_directories(${LIBRARY_NAME}
 
 # Install config files
 if ( ${CMAKE_PROJECT_NAME} MATCHES "Classic")
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/playerbot/aiplayerbot.conf.dist.in ${CMAKE_CURRENT_BINARY_DIR}/aiplayerbot.conf.dist)
-endif()
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/playerbot/aiplayerbot.conf.dist.in ${CMAKE_CURRENT_BINARY_DIR}/aiplayerbot.conf.dist)
+endif()	
 if ( ${CMAKE_PROJECT_NAME} MATCHES "TBC")
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/playerbot/aiplayerbot.conf.dist.in.tbc ${CMAKE_CURRENT_BINARY_DIR}/aiplayerbot.conf.dist)
-endif()
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/playerbot/aiplayerbot.conf.dist.in.tbc ${CMAKE_CURRENT_BINARY_DIR}/aiplayerbot.conf.dist)
+endif()	
 if ( ${CMAKE_PROJECT_NAME} MATCHES "WoTLK")
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/playerbot/aiplayerbot.conf.dist.in.wotlk ${CMAKE_CURRENT_BINARY_DIR}/aiplayerbot.conf.dist)
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/playerbot/aiplayerbot.conf.dist.in.wotlk ${CMAKE_CURRENT_BINARY_DIR}/aiplayerbot.conf.dist)
 endif()
 if (NOT CONF_INSTALL_DIR)
   set(CONF_INSTALL_DIR ${CONF_DIR})

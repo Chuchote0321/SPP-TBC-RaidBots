@@ -1,11 +1,6 @@
 # Playerbots
 Bot AI Core from ike3 for cmangos classic, tbc and wotlk
 
-## SPP TBC Raid AI development
-
-- [WLK AI reverse-port technical route](docs/WLK_AI_PORTING_TECHNICAL_ROUTE.md)
-- [TBC Raid compatibility and instance scaffold](playerbot/strategy/raid/README.md)
-
 This system brings the following features:
 - Populate the open world with playerbots
 - Populate BGs and Arenas with playerbots
@@ -35,7 +30,7 @@ After successful build get aiplayerbot.conf file from "src/modules/Bots/playerbo
   1.  Go to "src/modules/Bots/sql"
   2.  Apply .sql files from "characters" folder to characters database
   3.  Apply .sql files from "world" folder to world database
-
+  
   **IMPORTANT**: There are several .sql files that are in a `vanilla`, `tbc` or `wotlk` folder. You should only use the files in the folder for the core expansion you are currently using.
 
 After you complete all steps above you can check bots config and start your server. It'll take some time for the first time, as gear/characters for bots will be generated at first launch. Have fun! 🥳
