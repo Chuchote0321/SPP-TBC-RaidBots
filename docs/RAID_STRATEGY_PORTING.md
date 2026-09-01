@@ -65,3 +65,21 @@ The existing native Maulgar implementation already contains all required first-p
 - deterministic council kill order.
 
 It is retained as native code and is not replaced by the much smaller upstream Gruul-only prototype.
+
+## Maulgar pull and Misdirection contract
+
+The progression roster has exactly **three Hunters and three Misdirection lanes**. There is no fourth Hunter and no fourth Misdirection assignment.
+
+| Hunter lane | Hunter attacks | Misdirection recipient |
+|---|---|---|
+| 0 | High King Maulgar | Feral Maulgar main tank |
+| 1 | Blindeye the Seer | Protection Warrior Blindeye tank |
+| 2 | Kiggler the Crazed | Balance Druid Kiggler tank |
+
+Krosh and Olm are deliberately outside the Hunter Misdirection table:
+
+- the Mage tank opens Krosh directly with Frostbolt and establishes its own ranged threat;
+- the Warlock tank opens Olm directly with Searing Pain and establishes its own ranged threat;
+- neither the Mage tank nor the Warlock tank is a Misdirection recipient.
+
+The three-lane count and the absence of Krosh/Olm Misdirection lanes are enforced by `tools/raid/verify_port_scope.py`.
