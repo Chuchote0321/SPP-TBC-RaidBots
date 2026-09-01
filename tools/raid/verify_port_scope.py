@@ -16,6 +16,7 @@ REQUIRED_FILES = (
     "playerbot/strategy/raid/gruuls_lair/gruul/GruulEncounter.h",
     "playerbot/strategy/raid/gruuls_lair/gruul/GruulShatterPlanner.cpp",
     "playerbot/strategy/raid/gruuls_lair/gruul/GruulShatterPlanner.h",
+    "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/MaulgarPullCoordinator.cpp",
 )
 
 # These are upstream AC-strategies integration files. Their presence in this
@@ -117,6 +118,65 @@ def main() -> int:
     else:
         errors.append("native HighKingMaulgarEncounter.cpp is missing")
 
+    # The roster contains exactly three Hunters. Their Misdirection lanes cover
+    # only Maulgar, Blindeye and Kiggler. Krosh and Olm are ranged-tank self-pulls
+    # and must never acquire Hunter Misdirection lanes.
+    pull_path = (
+        ROOT
+        / "playerbot/strategy/raid/gruuls_lair/high_king_maulgar"
+        / "MaulgarPullCoordinator.cpp"
+    )
+    if pull_path.is_file():
+        pull = pull_path.read_text(encoding="utf-8")
+
+        required_three_lane_tokens = (
+            "Maulgar = 0",
+            "Blindeye = 1",
+            "Kiggler = 2",
+            "Count = 3",
+            "uint32 hunters[3];",
+            "bool hunterMdReady[3];",
+            "bool hunterOpeningComplete[3];",
+            "for (uint8 lane = 0; lane < 3; ++lane)",
+            "HunterPullLane::Maulgar",
+            "HunterPullLane::Blindeye",
+            "HunterPullLane::Kiggler",
+            "ai->CastSpell(\"frostbolt\", krosh)",
+            "ai->CastSpell(\"searing pain\", olm)",
+        )
+        for token in required_three_lane_tokens:
+            if token not in pull:
+                errors.append(
+                    f"three-Hunter Misdirection contract missing token: {token}")
+
+        forbidden_fourth_lane_tokens = (
+            "uint32 hunters[4]",
+            "hunterMdReady[4]",
+            "hunterOpeningComplete[4]",
+            "lane < 4",
+            "HunterPullLane::Krosh",
+            "HunterPullLane::Olm",
+        )
+        for token in forbidden_fourth_lane_tokens:
+            if token in pull:
+                errors.append(
+                    f"invalid fourth/ranged-tank Misdirection lane present: {token}")
+    else:
+        errors.append("MaulgarPullCoordinator.cpp is missing")
+
+    docs_path = ROOT / "docs/RAID_STRATEGY_PORTING.md"
+    if docs_path.is_file():
+        docs = docs_path.read_text(encoding="utf-8")
+        for token in (
+            "three Hunters and three Misdirection lanes",
+            "Mage tank opens Krosh directly",
+            "Warlock tank opens Olm directly",
+            "neither the Mage tank nor the Warlock tank is a Misdirection recipient",
+        ):
+            if token not in docs:
+                errors.append(
+                    f"Misdirection documentation missing token: {token}")
+
     if errors:
         print("RAID_PORT_SCOPE=FAIL")
         for error in errors:
@@ -128,6 +188,8 @@ def main() -> int:
     print("PORT_MODE=FILE_BY_FILE_SEMANTICS_ONLY")
     print("GRUUL_ROUTER=CONNECTED")
     print("MAULGAR_NATIVE_REGRESSION=PASS")
+    print("MAULGAR_MISDIRECTION_LANES=3")
+    print("KROSH_OLM_SELF_PULL=PASS")
     return 0
 
 
