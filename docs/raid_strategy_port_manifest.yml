@@ -3,7 +3,7 @@ schema: 1
 target:
   repository: Chuchote0321/SPP-TBC-RaidBots
   clean_branch: main
-  clean_head_at_start: e931bafe757ea451de86ed1bd7f691ee34b080af
+  clean_head_at_start: c453f2007079a18ef418ee7165471d12b48134c2
   integration_branch: feature/raid-tactics
   integration_head_at_start: 0df173d68f50b21acd5c7c276766213598f6e052
   delivery_branch: feature/gruuls-lair-phase1
