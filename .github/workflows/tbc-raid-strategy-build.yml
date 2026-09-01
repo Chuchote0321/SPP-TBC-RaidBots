@@ -1,0 +1,89 @@
+name: TBC Raid Strategy Build
+
+"on":
+  push:
+    branches:
+      - "feature/**"
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  port-scope:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Playerbots change
+        uses: actions/checkout@v4
+
+      - name: Verify selective-port contract
+        run: python3 tools/raid/verify_port_scope.py
+
+  tbc-playerbots:
+    runs-on: ubuntu-22.04
+    env:
+      BOOST_VERSION: "1.87.0"
+      BOOST_PLATFORM_VERSION: "22.04"
+      CC: gcc-12
+      CXX: g++-12
+
+    steps:
+      - name: Checkout Playerbots change
+        uses: actions/checkout@v4
+        with:
+          path: module
+
+      - name: Checkout pinned CMaNGOS TBC core
+        uses: actions/checkout@v4
+        with:
+          repository: cmangos/mangos-tbc
+          ref: 900ee47e8e4e0f6cf84f397e3df4d34cb6ac8557
+          path: core
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libace-dev \
+            libbz2-dev \
+            libicu-dev \
+            libmariadb-dev \
+            libmariadb-dev-compat \
+            libncurses-dev \
+            libreadline-dev \
+            libssl-dev
+
+      - name: Install pinned Boost
+        uses: MarkusJx/install-boost@v2.6.0
+        id: install-boost
+        with:
+          boost_version: ${{ env.BOOST_VERSION }}
+          platform_version: ${{ env.BOOST_PLATFORM_VERSION }}
+          toolset: ${{ env.CC }}
+          arch: x86
+
+      - name: Stage this exact Playerbots revision
+        run: |
+          rm -rf core/src/modules/PlayerBots
+          mkdir -p core/src/modules/PlayerBots
+          cp -a module/. core/src/modules/PlayerBots/
+          rm -rf core/src/modules/PlayerBots/.git
+
+      - name: Configure TBC
+        env:
+          BOOST_ROOT: ${{ steps.install-boost.outputs.BOOST_ROOT }}
+        run: |
+          cmake \
+            -S core \
+            -B build \
+            -DBoost_ARCHITECTURE=-x64 \
+            -DBUILD_PLAYERBOTS=ON \
+            -DPCH=ON \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Playerbots target
+        run: cmake --build build --target playerbots --parallel 2
