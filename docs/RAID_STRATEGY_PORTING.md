@@ -6,7 +6,7 @@ The clean repository baseline remains `main`. Raid development is isolated from 
 
 | Purpose | Ref at start of this change |
 |---|---|
-| Clean local baseline | `main` @ `e931bafe757ea451de86ed1bd7f691ee34b080af` |
+| Clean local baseline | `main` @ `c453f2007079a18ef418ee7165471d12b48134c2` |
 | Raid integration branch | `feature/raid-tactics` @ `0df173d68f50b21acd5c7c276766213598f6e052` |
 | Delivery branch | `feature/gruuls-lair-phase1` |
 | Upstream stable Playerbots | `cmangos/playerbots master` @ `d557e9873f2afbe9fd2fc8748363cfd756041d0d` |
