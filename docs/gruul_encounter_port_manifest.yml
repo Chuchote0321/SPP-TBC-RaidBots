@@ -1,0 +1,45 @@
+schema: 1
+
+target:
+  repository: Chuchote0321/SPP-TBC-RaidBots
+  base_branch: feature/raid-tactics
+  delivery_branch: feature/gruuls-lair-phase1
+  clean_master_policy: untouched
+
+upstream:
+  repository: mod-playerbots/mod-playerbots
+  branch: master
+  commit: b949b50bfcdd4fab937781bac2d7765e39330e4b
+  reviewed_files:
+    - src/Ai/Raid/Gruul/GruulStrategy.cpp
+    - src/Ai/Raid/Gruul/GruulTriggers.cpp
+    - src/Ai/Raid/Gruul/GruulActions.cpp
+    - src/Ai/Raid/Gruul/GruulMultipliers.cpp
+    - src/Ai/Raid/Gruul/GruulHelpers.cpp
+
+port:
+  mode: file-by-file-semantics
+  active_route: native-strategy-engine
+  accepted:
+    - tank-position-trigger
+    - ranged-persistent-spread-trigger
+    - shatter-emergency-trigger
+    - incremental-five-yard-positioning
+    - delay-bloodlust-above-95-percent
+    - main-tank-movement-control
+    - shatter-conflicting-movement-control
+  local_extensions:
+    - dynamic-respawn-plus-raid-centroid-frame
+    - dynamic-main-tank-room-center-slot
+    - explicit-hurtful-strike-soaker-slot
+    - deterministic-two-ring-ranged-layout
+    - max-min-shatter-slot-reservations
+    - shatter-ground-los-pathfinder-validation
+  rejected:
+    - whole-upstream-branch-merge
+    - absolute-gruul-room-coordinate-copy
+    - pre-engine-gruul-dispatch
+    - whole-class-rotation-blocking-after-position-reached
+  class_rotation:
+    replaced: false
+    default_actions_defined_by_raid_strategy: false

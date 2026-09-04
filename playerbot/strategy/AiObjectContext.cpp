@@ -12,7 +12,8 @@
 #include "actions/WorldPacketActionContext.h"
 #include "values/ValueContext.h"
 #include "values/SharedValueContext.h"
-
+#include "raid/gruuls_lair/high_king_maulgar/MaulgarPullCommandContext.h"
+#include "raid/gruuls_lair/gruul/GruulAiObjectContext.h"
 
 using namespace ai;
 
@@ -23,14 +24,18 @@ AiObjectContext::AiObjectContext(PlayerbotAI* ai) : PlayerbotAIAware(ai)
     strategyContexts.Add(new AssistStrategyContext());
     strategyContexts.Add(new QuestStrategyContext());
     strategyContexts.Add(new FishStrategyContext());
+    strategyContexts.Add(new GruulsLairStrategyContext());
 
     actionContexts.Add(new ActionContext());
     actionContexts.Add(new ChatActionContext());
     actionContexts.Add(new WorldPacketActionContext());
+    actionContexts.Add(new GruulsLairActionContext());
 
     triggerContexts.Add(new TriggerContext());
     triggerContexts.Add(new ChatTriggerContext());
     triggerContexts.Add(new WorldPacketTriggerContext());
+    triggerContexts.Add(new MaulgarPullCommandTriggerContext());
+    triggerContexts.Add(new GruulsLairTriggerContext());
 
     valueContexts.Add(new ValueContext());
 
@@ -78,7 +83,6 @@ void AiObjectContext::ClearExpiredValues(std::string findName, uint32 interval)
         valueContexts.Erase(name);
     }
 }
-
 
 std::string AiObjectContext::FormatValues(std::string findName)
 {
@@ -152,13 +156,15 @@ void AiObjectContext::Load(std::list<std::string> data)
     {
         std::string row = *i;
         std::vector<std::string> parts = split(row, '>');
-        if (parts.empty() || parts.size() > 2) continue;
+        if (parts.empty() || parts.size() > 2)
+            continue;
 
         std::string name = parts[0];
         std::string text = (parts.size() == 2) ? parts[1] : "";
 
         UntypedValue* value = GetUntypedValue(name);
-        if (!value) continue;
+        if (!value)
+            continue;
 
         value->Load(text);
     }

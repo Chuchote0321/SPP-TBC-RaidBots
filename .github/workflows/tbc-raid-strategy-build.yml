@@ -1,0 +1,81 @@
+name: TBC Raid Strategy Build
+
+"on":
+  push:
+    branches:
+      - "feature/**"
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  port-scope:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout Playerbots change
+        uses: actions/checkout@v4
+
+      - name: Verify selective-port contract
+        run: |
+          python3 tools/raid/verify_port_scope.py
+          python3 tools/raid/verify_gruul_native_strategy.py
+
+  tbc-playerbots:
+    runs-on: ubuntu-22.04
+    env:
+      CC: gcc-12
+      CXX: g++-12
+
+    steps:
+      - name: Checkout Playerbots change
+        uses: actions/checkout@v4
+        with:
+          path: module
+
+      - name: Checkout pinned CMaNGOS TBC core
+        uses: actions/checkout@v4
+        with:
+          repository: cmangos/mangos-tbc
+          ref: 900ee47e8e4e0f6cf84f397e3df4d34cb6ac8557
+          path: core
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gcc-12 \
+            g++-12 \
+            libace-dev \
+            libboost-all-dev \
+            libbz2-dev \
+            libicu-dev \
+            libmariadb-dev \
+            libmariadb-dev-compat \
+            libncurses-dev \
+            libreadline-dev \
+            libssl-dev
+
+      - name: Stage this exact Playerbots revision
+        run: |
+          rm -rf core/src/modules/PlayerBots
+          mkdir -p core/src/modules/PlayerBots
+          cp -a module/. core/src/modules/PlayerBots/
+          rm -rf core/src/modules/PlayerBots/.git
+
+      - name: Configure TBC
+        run: |
+          cmake \
+            -S core \
+            -B build \
+            -DBoost_NO_BOOST_CMAKE=ON \
+            -DBUILD_PLAYERBOTS=ON \
+            -DPCH=ON \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build Playerbots target
+        run: cmake --build build --target playerbots --parallel 2

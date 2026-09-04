@@ -48,6 +48,10 @@
 *~
 callgrind.out.*
 
+# Python bytecode/cache
+__pycache__/
+*.py[cod]
+
 # OS or Editor folders
 .DS_Store
 .cache
@@ -94,7 +98,6 @@ ipch
 /dep/ACE_wrappers/ace/QoS/Release*
 /dep/ACE_wrappers/ace/UpgradeLog*
 /dep/ACE_wrappers/ace/Release*
-/dep/ACE_wrappers/ace/_UpgradeReport_Files*
 /dep/ACE_wrappers/lib/*
 /dep/ACE_wrappers/ace/config.h
 

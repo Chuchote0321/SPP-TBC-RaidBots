@@ -944,15 +944,14 @@ EncounterOverrideResult HighKingMaulgarEncounter::Update(PlayerbotAI* ai)
 
     EncounterTrace::EncounterState(ai, "MAULGAR", encounterState);
 
-    // NOT_STARTED is now an active pre-pull state: exact fixed anchors,
-    // Misdirection arming, and Mage/Hunter synchronized pull barrier.
+    // NOT_STARTED is exclusively owned by the explicit command
+    // controller. The legacy fixed-coordinate pre-pull path is kept
+    // unreachable even if router ordering changes later.
     if (encounterState == 0) // NOT_STARTED
     {
         ResetBlindeyeInterruptChain(ai);
         ResetFelhunterReservations(ai);
-        MaulgarFormationManager::Reset(ai);
-
-        return MaulgarPullCoordinator::UpdatePrePull(ai);
+        return EncounterOverrideResult::NotHandled;
     }
 
     // Maulgar DONE is not an immediate overlay exit if enslaved/surviving
@@ -983,12 +982,9 @@ EncounterOverrideResult HighKingMaulgarEncounter::Update(PlayerbotAI* ai)
     // First combat ticks: each Hunter remains locked to its assigned council
     // member until the core Misdirection redirection target clears after the
     // opener. Other roles continue into normal encounter logic immediately.
-    EncounterOverrideResult opening =
-        MaulgarPullCoordinator::UpdateOpening(ai);
-
-    if (opening != EncounterOverrideResult::NotHandled)
-        return opening;
-
+    // The explicit command controller already completed the
+    // synchronized Mage/Hunter/Warlock opening before dispatch.
+    // Do not re-enter the legacy fixed-position pull coordinator.
     Creature* maulgar  = FindCreature(ai, EncounterConstants::NPC_MAULGAR);
     Creature* krosh    = FindCreature(ai, EncounterConstants::NPC_KROSH);
     Creature* olm      = FindCreature(ai, EncounterConstants::NPC_OLM);

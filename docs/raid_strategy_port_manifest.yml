@@ -1,0 +1,113 @@
+schema: 3
+
+target:
+  repository: Chuchote0321/SPP-TBC-RaidBots
+  clean_branch: main
+  clean_head_at_start: c453f2007079a18ef418ee7165471d12b48134c2
+  integration_branch: feature/raid-tactics
+  integration_head_at_start: 0df173d68f50b21acd5c7c276766213598f6e052
+  delivery_branch: feature/gruuls-lair-phase1
+
+core:
+  repository: cmangos/mangos-tbc
+  branch: master
+  commit: 900ee47e8e4e0f6cf84f397e3df4d34cb6ac8557
+
+upstream:
+  stable:
+    repository: cmangos/playerbots
+    branch: master
+    commit: d557e9873f2afbe9fd2fc8748363cfd756041d0d
+  experimental:
+    repository: cmangos/playerbots
+    branch: AC-strategies
+    commit: a5b202b146338ac280551ce5e29158149c5e3d37
+  positioning_reference:
+    repository: mod-playerbots/mod-playerbots
+    branch: master
+    commit: 2f7d9f774987d0157c6a0d0cc08c40bec3db3945
+
+ports:
+  - encounter: gruul
+    mode: semantics-only
+    source_files:
+      - playerbot/strategy/generic/GruulsLairDungeonStrategies.cpp
+      - playerbot/strategy/generic/GruulsLairDungeonStrategies.h
+      - playerbot/strategy/actions/GruulsLairDungeonActions.h
+      - playerbot/strategy/triggers/GruulsLairDungeonTriggers.h
+    accepted:
+      - map-and-creature-identifiers
+      - ground-slam-shatter-trigger
+      - relevant-spell-identifiers
+    rejected:
+      - whole-branch-merge
+      - generic-flee-from-master-or-self
+      - duplicate-legacy-strategy-registration
+    local_files:
+      - playerbot/strategy/raid/gruuls_lair/gruul/GruulEncounter.cpp
+      - playerbot/strategy/raid/gruuls_lair/gruul/GruulShatterPlanner.cpp
+
+native:
+  - encounter: high-king-maulgar
+    source: local
+    path: playerbot/strategy/raid/gruuls_lair/high_king_maulgar
+    command_gate:
+      mode: explicit-two-stage
+      state_scope: map-instance
+      prepare_command: raid prepare maulgar
+      pull_command: raid pull maulgar
+      accepted_senders:
+        - raid-leader
+        - raid-assistant
+      command_delivery: immediate-external-event
+      legacy_not_started_dispatch: disabled
+    positioning:
+      mode: encounter-relative-auto
+      reference_files:
+        - src/Ai/Raid/Gruul/GruulStrategy.cpp
+        - src/Ai/Raid/Gruul/GruulTriggers.cpp
+        - src/Ai/Raid/Gruul/GruulActions.cpp
+        - src/Ai/Raid/Gruul/GruulHelpers.cpp
+      accepted_semantics:
+        - role-driven-position-actions
+        - incremental-five-yard-movement
+        - movement-priority-over-normal-rotation
+        - target-relative-range-control
+        - collision-and-path-validation
+        - emergency-movement-override
+      local_frame:
+        origin: five-council-centroid
+        forward_axis: raid-centroid-from-council
+        side_axis: perpendicular-forward
+      deterministic_distribution:
+        method: stable-group-guid-ordinal
+        roles:
+          - healer-backline
+          - ranged-backline
+          - melee-backline
+      protected_humans:
+        movement: never-server-controlled
+        krosh-mage-envelope: 20-32yd-los
+        olm-warlock-envelope: 18-32yd-los
+      forbidden:
+        - manual-bot-pre-positioning
+        - local-absolute-coordinate-table
+        - active-maulgar-fixed-positions
+    pull_topology:
+      hunter_count: 3
+      misdirection_count: 3
+      lanes:
+        - hunter_target: high-king-maulgar
+          recipient: feral-main-tank
+        - hunter_target: blindeye-the-seer
+          recipient: protection-warrior
+        - hunter_target: kiggler-the-crazed
+          recipient: balance-druid
+      self_pull:
+        krosh: mage-frostbolt
+        olm: warlock-searing-pain
+      forbidden:
+        - fourth-hunter-lane
+        - krosh-misdirection
+        - olm-misdirection
+        - automatic-not-started-pull
