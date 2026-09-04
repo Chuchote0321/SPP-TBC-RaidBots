@@ -1,0 +1,55 @@
+name: Apply Maulgar Relative Positioning
+
+on:
+  push:
+    branches:
+      - feature/gruuls-lair-phase1
+    paths:
+      - .github/workflows/apply-maulgar-relative-positioning.yml
+      - tools/raid/.maulgar-relative-positioning/**
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout delivery branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/gruuls-lair-phase1
+          fetch-depth: 0
+
+      - name: Decode and apply migration
+        run: |
+          cat tools/raid/.maulgar-relative-positioning/part* \
+            | tr -d '[:space:]' \
+            | base64 -d > /tmp/maulgar-relative-positioning.tar.gz
+          mkdir -p /tmp/maulgar-relative-positioning
+          tar -xzf /tmp/maulgar-relative-positioning.tar.gz \
+            -C /tmp/maulgar-relative-positioning
+          GITHUB_WORKSPACE="$GITHUB_WORKSPACE" \
+            python3 /tmp/maulgar-relative-positioning/apply.py
+
+      - name: Verify source contract
+        run: |
+          git diff --check
+          python3 tools/raid/verify_port_scope.py
+
+      - name: Commit migrated source
+        run: |
+          if git diff --quiet; then
+            echo "No migration diff produced"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            docs/RAID_STRATEGY_PORTING.md \
+            docs/raid_strategy_port_manifest.yml \
+            playerbot/strategy/raid/gruuls_lair/high_king_maulgar \
+            tools/raid/verify_port_scope.py
+          git commit -m "Maulgar: derive automatic role positions from encounter geometry"
+          git push origin HEAD:feature/gruuls-lair-phase1
