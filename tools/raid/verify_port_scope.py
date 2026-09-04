@@ -41,6 +41,8 @@ FORBIDDEN_LEGACY_FILES = (
     "playerbot/strategy/generic/GruulsLairDungeonStrategies.h",
     "playerbot/strategy/actions/GruulsLairDungeonActions.h",
     "playerbot/strategy/triggers/GruulsLairDungeonTriggers.h",
+    "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+    "MaulgarFixedPositions.h",
 )
 
 REQUIRED_MANIFEST_TOKENS = (
@@ -151,11 +153,11 @@ def main() -> int:
     # self-pulls by their ranged tanks.
     pull = read(
         "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
-        "MaulgarPullCoordinator.cpp"
+        "MaulgarPullCommandController.cpp"
     )
     require_tokens(
         errors,
-        "legacy three-Hunter topology",
+        "active three-Hunter topology",
         pull,
         (
             "Maulgar = 0",
@@ -163,14 +165,31 @@ def main() -> int:
             "Kiggler = 2",
             "Count = 3",
             "uint32 hunters[3];",
-            "bool hunterMdReady[3];",
-            "bool hunterOpeningComplete[3];",
-            "for (uint8 lane = 0; lane < 3; ++lane)",
+            "bool hunterOpened[3];",
+            "HunterPullLane::Count",
             'ai->CastSpell("frostbolt", krosh)',
             'ai->CastSpell("searing pain", olm)',
         ),
     )
 
+
+    compatibility = read(
+        "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+        "MaulgarPullCoordinator.cpp"
+    )
+    require_tokens(
+        errors,
+        "retired pull-coordinator compatibility shim",
+        compatibility,
+        (
+            "No compatibility state remains",
+            "return EncounterOverrideResult::NotHandled;",
+        ),
+    )
+    if "MaulgarFixedPositions" in compatibility:
+        errors.append(
+            "retired pull coordinator still references fixed positions"
+        )
 
     formation = read(
         "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"

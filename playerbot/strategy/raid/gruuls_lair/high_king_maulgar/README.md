@@ -73,6 +73,9 @@ several tanks. This port keeps the same role/action and short-step movement
 semantics, but replaces those absolute constants with a frame generated from
 live encounter geometry. General healers, ranged and melee are distributed by
 stable group ordinal rather than per-character coordinate records.
+The former `MaulgarFixedPositions` table has been removed. The legacy
+`MaulgarPullCoordinator` remains only as a no-op compatibility API; it owns
+no state, movement, Misdirection or opening logic.
 
 ## Locked mechanics
 
