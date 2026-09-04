@@ -66,5 +66,14 @@ float GruulShatterMovementMultiplier::GetValue(Action* action)
     if (IsNamed(action, "gruul shatter spread"))
         return 1.0f;
 
+    // In the original mod-playerbots implementation, reach-target spell
+    // actions are suppressed together with generic movement while Ground Slam
+    // and Shatter positioning are active. CMaNGOS exposes those as named
+    // Actions rather than a shared movement base, so retain the semantic rule
+    // by rejecting the native "reach ..." action family explicitly.
+    const std::string& name = action->getName();
+    if (name.find("reach ") == 0)
+        return 0.0f;
+
     return dynamic_cast<MovementAction*>(action) ? 0.0f : 1.0f;
 }
