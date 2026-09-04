@@ -123,27 +123,30 @@ jobs:
               "active topology fields",
           )
 
-          marker = "    formation = read(\n"
-          compatibility_check = '''    compatibility = read(
-              "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
-              "MaulgarPullCoordinator.cpp"
+          compatibility_check = (
+              "    compatibility = read(\n"
+              "        \"playerbot/strategy/raid/gruuls_lair/high_king_maulgar/\"\n"
+              "        \"MaulgarPullCoordinator.cpp\"\n"
+              "    )\n"
+              "    require_tokens(\n"
+              "        errors,\n"
+              "        \"retired pull-coordinator compatibility shim\",\n"
+              "        compatibility,\n"
+              "        (\n"
+              "            \"No compatibility state remains\",\n"
+              "            \"return EncounterOverrideResult::NotHandled;\",\n"
+              "        ),\n"
+              "    )\n"
+              "    if \"MaulgarFixedPositions\" in compatibility:\n"
+              "        errors.append(\n"
+              "            \"retired pull coordinator still references fixed positions\"\n"
+              "        )\n\n"
           )
-          require_tokens(
-              errors,
-              "retired pull-coordinator compatibility shim",
-              compatibility,
-              (
-                  "No compatibility state remains",
-                  "return EncounterOverrideResult::NotHandled;",
-              ),
+          replace_once(
+              "    formation = read(\n",
+              compatibility_check + "    formation = read(\n",
+              "compatibility verifier",
           )
-          if "MaulgarFixedPositions" in compatibility:
-              errors.append(
-                  "retired pull coordinator still references fixed positions"
-              )
-
-          '''
-          replace_once(marker, compatibility_check + marker, "compatibility verifier")
 
           verifier.write_text(text, encoding="utf-8")
 
@@ -174,6 +177,7 @@ jobs:
           ! grep -RE "MaulgarFixedPositions::|#include .*MaulgarFixedPositions" \
             playerbot/strategy/raid/gruuls_lair/high_king_maulgar/*.cpp \
             playerbot/strategy/raid/gruuls_lair/high_king_maulgar/*.h
+          python3 -m py_compile tools/raid/verify_port_scope.py
           git diff --check
           python3 tools/raid/verify_port_scope.py
 
