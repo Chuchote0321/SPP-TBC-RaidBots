@@ -1,4 +1,4 @@
-schema: 1
+schema: 2
 
 target:
   repository: Chuchote0321/SPP-TBC-RaidBots
@@ -47,3 +47,31 @@ native:
   - encounter: high-king-maulgar
     source: local
     path: playerbot/strategy/raid/gruuls_lair/high_king_maulgar
+    command_gate:
+      mode: explicit-two-stage
+      state_scope: map-instance
+      prepare_command: raid prepare maulgar
+      pull_command: raid pull maulgar
+      accepted_senders:
+        - raid-leader
+        - raid-assistant
+      command_delivery: immediate-external-event
+      legacy_not_started_dispatch: disabled
+    pull_topology:
+      hunter_count: 3
+      misdirection_count: 3
+      lanes:
+        - hunter_target: high-king-maulgar
+          recipient: feral-main-tank
+        - hunter_target: blindeye-the-seer
+          recipient: protection-warrior
+        - hunter_target: kiggler-the-crazed
+          recipient: balance-druid
+      self_pull:
+        krosh: mage-frostbolt
+        olm: warlock-searing-pain
+      forbidden:
+        - fourth-hunter-lane
+        - krosh-misdirection
+        - olm-misdirection
+        - automatic-not-started-pull

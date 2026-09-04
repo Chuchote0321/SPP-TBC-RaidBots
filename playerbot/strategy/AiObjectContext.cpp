@@ -12,6 +12,7 @@
 #include "actions/WorldPacketActionContext.h"
 #include "values/ValueContext.h"
 #include "values/SharedValueContext.h"
+#include "raid/gruuls_lair/high_king_maulgar/MaulgarPullCommandContext.h"
 
 
 using namespace ai;
@@ -31,6 +32,7 @@ AiObjectContext::AiObjectContext(PlayerbotAI* ai) : PlayerbotAIAware(ai)
     triggerContexts.Add(new TriggerContext());
     triggerContexts.Add(new ChatTriggerContext());
     triggerContexts.Add(new WorldPacketTriggerContext());
+    triggerContexts.Add(new MaulgarPullCommandTriggerContext());
 
     valueContexts.Add(new ValueContext());
 

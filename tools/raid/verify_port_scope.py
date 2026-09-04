@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify the file-by-file TBC raid-strategy port contract."""
+"""Verify the selective TBC raid port and explicit Maulgar pull contract."""
 
 from __future__ import annotations
 
@@ -12,16 +12,30 @@ ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_FILES = (
     "docs/RAID_STRATEGY_PORTING.md",
     "docs/raid_strategy_port_manifest.yml",
+    "playerbot/strategy/raid/common/EncounterManager.cpp",
+    "playerbot/strategy/raid/gruuls_lair/GruulsLairTactics.cpp",
     "playerbot/strategy/raid/gruuls_lair/gruul/GruulEncounter.cpp",
     "playerbot/strategy/raid/gruuls_lair/gruul/GruulEncounter.h",
     "playerbot/strategy/raid/gruuls_lair/gruul/GruulShatterPlanner.cpp",
     "playerbot/strategy/raid/gruuls_lair/gruul/GruulShatterPlanner.h",
-    "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/MaulgarPullCoordinator.cpp",
+    "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+    "HighKingMaulgarEncounter.cpp",
+    "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+    "MaulgarPullCoordinator.cpp",
+    "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+    "MaulgarPullCommandController.cpp",
+    "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+    "MaulgarPullCommandController.h",
+    "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+    "MaulgarPullCommandTriggers.cpp",
+    "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+    "MaulgarPullCommandTriggers.h",
+    "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+    "MaulgarPullCommandContext.h",
 )
 
-# These are upstream AC-strategies integration files. Their presence in this
-# repository would indicate a branch-level copy instead of the local encounter
-# router's selective-port architecture.
+# These are the old AC-strategies whole-port integration files. Their presence
+# would indicate a branch-level copy rather than a selective semantics port.
 FORBIDDEN_LEGACY_FILES = (
     "playerbot/strategy/generic/GruulsLairDungeonStrategies.cpp",
     "playerbot/strategy/generic/GruulsLairDungeonStrategies.h",
@@ -37,9 +51,31 @@ REQUIRED_MANIFEST_TOKENS = (
     "mode: semantics-only",
     "whole-branch-merge",
     "generic-flee-from-master-or-self",
+    "mode: explicit-two-stage",
+    "prepare_command: raid prepare maulgar",
+    "pull_command: raid pull maulgar",
+    "hunter_count: 3",
+    "misdirection_count: 3",
+    "automatic-not-started-pull",
 )
 
 SHA40 = re.compile(r"^[0-9a-f]{40}$")
+
+
+def read(relative: str) -> str:
+    path = ROOT / relative
+    return path.read_text(encoding="utf-8") if path.is_file() else ""
+
+
+def require_tokens(
+    errors: list[str],
+    label: str,
+    content: str,
+    tokens: tuple[str, ...],
+) -> None:
+    for token in tokens:
+        if token not in content:
+            errors.append(f"{label} missing token: {token}")
 
 
 def main() -> int:
@@ -53,56 +89,50 @@ def main() -> int:
         if (ROOT / relative).exists():
             errors.append(f"forbidden legacy whole-port file present: {relative}")
 
-    manifest_path = ROOT / "docs/raid_strategy_port_manifest.yml"
-    if manifest_path.is_file():
-        manifest = manifest_path.read_text(encoding="utf-8")
-        for token in REQUIRED_MANIFEST_TOKENS:
-            if token not in manifest:
-                errors.append(f"manifest missing token: {token}")
+    manifest = read("docs/raid_strategy_port_manifest.yml")
+    require_tokens(errors, "manifest", manifest, REQUIRED_MANIFEST_TOKENS)
 
-        for line in manifest.splitlines():
-            stripped = line.strip()
-            if stripped.startswith((
+    for line in manifest.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(
+            (
                 "commit:",
                 "clean_head_at_start:",
                 "integration_head_at_start:",
-            )):
-                value = stripped.split(":", 1)[1].strip()
-                if not SHA40.fullmatch(value):
-                    errors.append(
-                        f"manifest contains invalid commit SHA: {value!r}")
+            )
+        ):
+            value = stripped.split(":", 1)[1].strip()
+            if not SHA40.fullmatch(value):
+                errors.append(f"manifest contains invalid commit SHA: {value!r}")
 
-    router_path = (
-        ROOT
-        / "playerbot/strategy/raid/gruuls_lair/GruulsLairTactics.cpp"
-    )
-    if router_path.is_file():
-        router = router_path.read_text(encoding="utf-8")
-        if "GruulEncounter::Update(ai)" not in router:
-            errors.append(
-                "Gruul encounter is not connected to GruulsLairTactics")
-
-    constants_path = (
-        ROOT / "playerbot/strategy/raid/common/EncounterTypes.h"
-    )
-    if constants_path.is_file():
-        constants = constants_path.read_text(encoding="utf-8")
-        for token in (
+    constants = read("playerbot/strategy/raid/common/EncounterTypes.h")
+    require_tokens(
+        errors,
+        "EncounterTypes.h",
+        constants,
+        (
+            "TYPE_MAULGAR_EVENT",
             "TYPE_GRUUL_EVENT",
             "NPC_GRUUL",
             "SPELL_GRUUL_SHATTER",
-        ):
-            if token not in constants:
-                errors.append(f"EncounterTypes.h missing {token}")
-
-    maulgar_path = (
-        ROOT
-        / "playerbot/strategy/raid/gruuls_lair/high_king_maulgar"
-        / "HighKingMaulgarEncounter.cpp"
+        ),
     )
-    if maulgar_path.is_file():
-        maulgar = maulgar_path.read_text(encoding="utf-8")
-        required_maulgar_tokens = (
+
+    router = read(
+        "playerbot/strategy/raid/gruuls_lair/GruulsLairTactics.cpp"
+    )
+    if "GruulEncounter::Update(ai)" not in router:
+        errors.append("Gruul encounter is not connected to GruulsLairTactics")
+
+    maulgar = read(
+        "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+        "HighKingMaulgarEncounter.cpp"
+    )
+    require_tokens(
+        errors,
+        "native Maulgar strategy",
+        maulgar,
+        (
             "MAULGAR_FERAL_TANKS",
             "BLINDEYE_WARRIOR_TANKS",
             "KIGGLER_BALANCE",
@@ -110,26 +140,20 @@ def main() -> int:
             "HighestEnslaveDemonSpell",
             "BlindeyeInterruptRoundForGuid",
             "SelectKillOrderTarget",
-        )
-        for token in required_maulgar_tokens:
-            if token not in maulgar:
-                errors.append(
-                    f"native Maulgar strategy missing regression token: {token}")
-    else:
-        errors.append("native HighKingMaulgarEncounter.cpp is missing")
-
-    # The roster contains exactly three Hunters. Their Misdirection lanes cover
-    # only Maulgar, Blindeye and Kiggler. Krosh and Olm are ranged-tank self-pulls
-    # and must never acquire Hunter Misdirection lanes.
-    pull_path = (
-        ROOT
-        / "playerbot/strategy/raid/gruuls_lair/high_king_maulgar"
-        / "MaulgarPullCoordinator.cpp"
+        ),
     )
-    if pull_path.is_file():
-        pull = pull_path.read_text(encoding="utf-8")
 
-        required_three_lane_tokens = (
+    # Exactly three Hunters handle exactly three MD lanes. Krosh and Olm remain
+    # self-pulls by their ranged tanks.
+    pull = read(
+        "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+        "MaulgarPullCoordinator.cpp"
+    )
+    require_tokens(
+        errors,
+        "legacy three-Hunter topology",
+        pull,
+        (
             "Maulgar = 0",
             "Blindeye = 1",
             "Kiggler = 2",
@@ -138,44 +162,149 @@ def main() -> int:
             "bool hunterMdReady[3];",
             "bool hunterOpeningComplete[3];",
             "for (uint8 lane = 0; lane < 3; ++lane)",
-            "HunterPullLane::Maulgar",
-            "HunterPullLane::Blindeye",
-            "HunterPullLane::Kiggler",
-            "ai->CastSpell(\"frostbolt\", krosh)",
-            "ai->CastSpell(\"searing pain\", olm)",
-        )
-        for token in required_three_lane_tokens:
-            if token not in pull:
-                errors.append(
-                    f"three-Hunter Misdirection contract missing token: {token}")
+            'ai->CastSpell("frostbolt", krosh)',
+            'ai->CastSpell("searing pain", olm)',
+        ),
+    )
 
-        forbidden_fourth_lane_tokens = (
-            "uint32 hunters[4]",
-            "hunterMdReady[4]",
-            "hunterOpeningComplete[4]",
-            "lane < 4",
-            "HunterPullLane::Krosh",
-            "HunterPullLane::Olm",
-        )
-        for token in forbidden_fourth_lane_tokens:
-            if token in pull:
-                errors.append(
-                    f"invalid fourth/ranged-tank Misdirection lane present: {token}")
-    else:
-        errors.append("MaulgarPullCoordinator.cpp is missing")
+    controller = read(
+        "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+        "MaulgarPullCommandController.cpp"
+    )
+    require_tokens(
+        errors,
+        "explicit pull controller",
+        controller,
+        (
+            "MaulgarPullCommandPhase::Idle",
+            "MaulgarPullCommandPhase::Preparing",
+            "MaulgarPullCommandPhase::Armed",
+            "MaulgarPullCommandPhase::PullRequested",
+            "AllMisdirectionsReady",
+            "COMMAND_MD_ARM",
+            "COMMAND_MD_REARM",
+            "COMMAND_HUNTER_OPEN",
+            "HUMAN_MAGE_ENGAGED",
+            'ai->CastSpell("frostbolt", krosh)',
+            'ai->CastSpell("searing pain", olm)',
+            "return maulgarState != 0;",
+        ),
+    )
 
-    docs_path = ROOT / "docs/RAID_STRATEGY_PORTING.md"
-    if docs_path.is_file():
-        docs = docs_path.read_text(encoding="utf-8")
-        for token in (
+    forbidden_fourth_lane_tokens = (
+        "uint32 hunters[4]",
+        "hunterMdReady[4]",
+        "hunterOpeningComplete[4]",
+        "hunterOpened[4]",
+        "lane < 4",
+        "HunterPullLane::Krosh",
+        "HunterPullLane::Olm",
+    )
+    for token in forbidden_fourth_lane_tokens:
+        if token in pull or token in controller:
+            errors.append(
+                f"invalid fourth/ranged-tank Misdirection lane present: {token}"
+            )
+
+    trigger_impl = read(
+        "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+        "MaulgarPullCommandTriggers.cpp"
+    )
+    trigger_header = read(
+        "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+        "MaulgarPullCommandTriggers.h"
+    )
+    trigger_context = read(
+        "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+        "MaulgarPullCommandContext.h"
+    )
+    ai_context = read("playerbot/strategy/AiObjectContext.cpp")
+
+    require_tokens(
+        errors,
+        "command trigger implementation",
+        trigger_impl,
+        (
+            "MaulgarPullCommandController::RequestPrepare(ai, owner)",
+            "MaulgarPullCommandController::RequestPull(ai, owner)",
+        ),
+    )
+    require_tokens(
+        errors,
+        "command trigger declaration",
+        trigger_header,
+        (
+            'Trigger(ai, "raid prepare maulgar")',
+            'Trigger(ai, "raid pull maulgar")',
+            "ExternalEvent(",
+            "Event Check() override { return Event(); }",
+        ),
+    )
+    require_tokens(
+        errors,
+        "command trigger context",
+        trigger_context,
+        (
+            'creators["raid prepare maulgar"]',
+            'creators["raid pull maulgar"]',
+            "MaulgarPrepareCommandTrigger",
+            "MaulgarPullCommandTrigger",
+        ),
+    )
+    if "MaulgarPullCommandTriggerContext" not in ai_context:
+        errors.append(
+            "AiObjectContext does not register MaulgarPullCommandTriggerContext"
+        )
+    if "MaulgarPullCommandActionContext" in ai_context:
+        errors.append(
+            "Maulgar command incorrectly waits for an Engine Action context"
+        )
+
+    encounter_manager = read(
+        "playerbot/strategy/raid/common/EncounterManager.cpp"
+    )
+    require_tokens(
+        errors,
+        "EncounterManager explicit gate",
+        encounter_manager,
+        (
+            "MaulgarPullCommandController::Update(ai)",
+            "MaulgarPullCommandController::AllowEncounterDispatch(ai)",
+            "GruulsLairTactics::Update(ai)",
+        ),
+    )
+    command_index = encounter_manager.find(
+        "MaulgarPullCommandController::Update(ai)"
+    )
+    gate_index = encounter_manager.find(
+        "MaulgarPullCommandController::AllowEncounterDispatch(ai)"
+    )
+    legacy_index = encounter_manager.find("GruulsLairTactics::Update(ai)")
+    if not (
+        command_index >= 0
+        and gate_index > command_index
+        and legacy_index > gate_index
+    ):
+        errors.append(
+            "EncounterManager order must be command update -> gate -> legacy router"
+        )
+
+    docs = read("docs/RAID_STRATEGY_PORTING.md")
+    require_tokens(
+        errors,
+        "Misdirection/command documentation",
+        docs,
+        (
             "three Hunters and three Misdirection lanes",
             "Mage tank opens Krosh directly",
             "Warlock tank opens Olm directly",
             "neither the Mage tank nor the Warlock tank is a Misdirection recipient",
-        ):
-            if token not in docs:
-                errors.append(
-                    f"Misdirection documentation missing token: {token}")
+            "/ra raid prepare maulgar",
+            "/ra raid pull maulgar",
+            "legacy encounter router is disabled",
+            "immediately in `ExternalEvent()`",
+        ),
+    )
 
     if errors:
         print("RAID_PORT_SCOPE=FAIL")
@@ -190,6 +319,9 @@ def main() -> int:
     print("MAULGAR_NATIVE_REGRESSION=PASS")
     print("MAULGAR_MISDIRECTION_LANES=3")
     print("KROSH_OLM_SELF_PULL=PASS")
+    print("MAULGAR_PULL_COMMANDS=PREPARE_THEN_PULL")
+    print("MAULGAR_NOT_STARTED_AUTOPULL=DISABLED")
+    print("COMMAND_DELIVERY=IMMEDIATE_EXTERNAL_EVENT")
     return 0
 
 

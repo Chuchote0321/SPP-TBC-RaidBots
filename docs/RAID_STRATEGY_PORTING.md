@@ -56,7 +56,7 @@ Local replacement:
 
 ## Maulgar audit result
 
-The existing native Maulgar implementation already contains all required first-pass mechanics:
+The existing native Maulgar implementation contains the first-pass encounter mechanics:
 
 - explicit five-target assignment policy;
 - Krosh Spellsteal;
@@ -64,7 +64,7 @@ The existing native Maulgar implementation already contains all required first-p
 - Blindeye interrupt rotation;
 - deterministic council kill order.
 
-It is retained as native code and is not replaced by the much smaller upstream Gruul-only prototype.
+It remains native code and is not replaced by the smaller upstream Gruul-only prototype.
 
 ## Maulgar pull and Misdirection contract
 
@@ -82,4 +82,72 @@ Krosh and Olm are deliberately outside the Hunter Misdirection table:
 - the Warlock tank opens Olm directly with Searing Pain and establishes its own ranged threat;
 - neither the Mage tank nor the Warlock tank is a Misdirection recipient.
 
-The three-lane count and the absence of Krosh/Olm Misdirection lanes are enforced by `tools/raid/verify_port_scope.py`.
+## Explicit two-stage command gate
+
+Entering map 565 no longer starts the Maulgar pre-pull automatically. While
+`TYPE_MAULGAR_EVENT` is `NOT_STARTED`, the legacy encounter router is disabled.
+Only two exact raid commands can move the shared pull state out of `IDLE`:
+
+```text
+/ra raid prepare maulgar
+/ra raid pull maulgar
+```
+
+The client `/ra` prefix is not part of the Playerbot command text. The two
+registered trigger names are exactly `raid prepare maulgar` and
+`raid pull maulgar`.
+
+The command state is shared by all Playerbots in the same map instance:
+
+```text
+IDLE
+  -> PREPARING
+  -> ARMED
+  -> PULL_REQUESTED
+  -> IN_PROGRESS
+```
+
+### `raid prepare maulgar`
+
+The command:
+
+- is accepted only from a raid leader or raid assistant who is in the same
+  Gruul's Lair instance;
+- verifies that all five council creatures and all required pull actors are
+  present;
+- freezes the current manually selected pull positions while the WCL fixed
+  anchor profile remains disabled;
+- arms exactly the three Hunter Misdirections listed above;
+- announces `MAULGAR_PULL_ARMED` only after all three core threat-redirection
+  targets are confirmed.
+
+### `raid pull maulgar`
+
+The command:
+
+- is rejected unless the shared phase is `ARMED` and all three Misdirections
+  are still active;
+- makes a bot Mage Frostbolt Krosh automatically;
+- never controls a protected human Mage and holds all Hunters until that human
+  actually engages Krosh;
+- releases the three Hunters only against Maulgar, Blindeye and Kiggler;
+- re-arms an individual Hunter lane if its short Misdirection window expires
+  before that Hunter fires;
+- makes a bot Warlock cast Searing Pain on Olm;
+- never controls a protected human Warlock and announces the required manual
+  Olm opener instead;
+- keeps the synchronized opener authoritative even after ScriptDevAI first
+  publishes `IN_PROGRESS`, then returns control to the existing encounter and
+  class rotations after the three Hunter openers and the automated Warlock
+  opener have been issued.
+
+The command triggers update the shared state immediately in `ExternalEvent()`.
+They do not wait for a normal Engine action, because the explicit preparation
+hold intentionally blocks ordinary movement and combat actions until the pull
+is released.
+
+## Wipe/reset behavior
+
+After the controller has observed `IN_PROGRESS`, any return to `NOT_STARTED`
+clears the command state. A new pull therefore requires a fresh
+`raid prepare maulgar`; stale Misdirection or opening state is never reused.
