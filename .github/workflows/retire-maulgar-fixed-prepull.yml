@@ -1,0 +1,194 @@
+name: Retire Maulgar Fixed Prepull
+
+on:
+  push:
+    branches:
+      - feature/gruuls-lair-phase1
+    paths:
+      - .github/workflows/retire-maulgar-fixed-prepull.yml
+
+permissions:
+  contents: write
+
+jobs:
+  retire:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout delivery branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/gruuls-lair-phase1
+          fetch-depth: 0
+
+      - name: Retire fixed-coordinate compatibility path
+        run: |
+          cat > playerbot/strategy/raid/gruuls_lair/high_king_maulgar/MaulgarPullCoordinator.h <<'HEADER'
+          #pragma once
+
+          #include "playerbot/strategy/raid/common/EncounterTypes.h"
+
+          class PlayerbotAI;
+
+          namespace ai
+          {
+              // Compatibility API for downstream branches that still include
+              // MaulgarPullCoordinator. The active preparation, positioning and
+              // synchronized opening are owned by MaulgarPullCommandController.
+              // No fixed coordinate, pull state or movement is retained here.
+              class MaulgarPullCoordinator
+              {
+              public:
+                  static EncounterOverrideResult UpdatePrePull(PlayerbotAI* ai);
+                  static EncounterOverrideResult UpdateOpening(PlayerbotAI* ai);
+                  static void Reset(PlayerbotAI* ai);
+                  static bool IsConfigured();
+
+              private:
+                  MaulgarPullCoordinator() = delete;
+              };
+          }
+          HEADER
+
+          cat > playerbot/strategy/raid/gruuls_lair/high_king_maulgar/MaulgarPullCoordinator.cpp <<'SOURCE'
+          #include "botpch.h"
+          #include "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/MaulgarPullCoordinator.h"
+
+          using namespace ai;
+
+          bool MaulgarPullCoordinator::IsConfigured()
+          {
+              // The retired legacy API must never advertise an independently
+              // configured pull path. The command controller is authoritative.
+              return false;
+          }
+
+          void MaulgarPullCoordinator::Reset(PlayerbotAI* /*ai*/)
+          {
+              // No compatibility state remains.
+          }
+
+          EncounterOverrideResult MaulgarPullCoordinator::UpdatePrePull(
+              PlayerbotAI* /*ai*/)
+          {
+              return EncounterOverrideResult::NotHandled;
+          }
+
+          EncounterOverrideResult MaulgarPullCoordinator::UpdateOpening(
+              PlayerbotAI* /*ai*/)
+          {
+              return EncounterOverrideResult::NotHandled;
+          }
+          SOURCE
+
+          rm -f \
+            playerbot/strategy/raid/gruuls_lair/high_king_maulgar/MaulgarFixedPositions.h
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          verifier = Path("tools/raid/verify_port_scope.py")
+          text = verifier.read_text(encoding="utf-8")
+
+          def replace_once(old: str, new: str, label: str) -> None:
+              global text
+              count = text.count(old)
+              if count != 1:
+                  raise RuntimeError(f"{label}: expected one match, found {count}")
+              text = text.replace(old, new, 1)
+
+          replace_once(
+              '    "playerbot/strategy/triggers/GruulsLairDungeonTriggers.h",\n)\n',
+              '    "playerbot/strategy/triggers/GruulsLairDungeonTriggers.h",\n'
+              '    "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"\n'
+              '    "MaulgarFixedPositions.h",\n)\n',
+              "forbid retired fixed-position header",
+          )
+          replace_once(
+              '        "MaulgarPullCoordinator.cpp"\n    )\n',
+              '        "MaulgarPullCommandController.cpp"\n    )\n',
+              "topology source",
+          )
+          replace_once(
+              '        "legacy three-Hunter topology",\n',
+              '        "active three-Hunter topology",\n',
+              "topology label",
+          )
+          replace_once(
+              '            "bool hunterMdReady[3];",\n'
+              '            "bool hunterOpeningComplete[3];",\n'
+              '            "for (uint8 lane = 0; lane < 3; ++lane)",\n',
+              '            "bool hunterOpened[3];",\n'
+              '            "HunterPullLane::Count",\n',
+              "active topology fields",
+          )
+
+          marker = '''    formation = read(
+              "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+              "MaulgarFormationManager.cpp"
+          )
+          '''
+          compatibility_check = '''    compatibility = read(
+              "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+              "MaulgarPullCoordinator.cpp"
+          )
+          require_tokens(
+              errors,
+              "retired pull-coordinator compatibility shim",
+              compatibility,
+              (
+                  "No compatibility state remains",
+                  "return EncounterOverrideResult::NotHandled;",
+              ),
+          )
+          if "MaulgarFixedPositions" in compatibility:
+              errors.append(
+                  "retired pull coordinator still references fixed positions"
+              )
+
+          '''
+          replace_once(marker, compatibility_check + marker, "compatibility verifier")
+
+          verifier.write_text(text, encoding="utf-8")
+
+          readme = Path(
+              "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/README.md"
+          )
+          text = readme.read_text(encoding="utf-8")
+          marker = (
+              "The upstream Maulgar implementation uses fixed room `Position` constants for\n"
+              "several tanks. This port keeps the same role/action and short-step movement\n"
+              "semantics, but replaces those absolute constants with a frame generated from\n"
+              "live encounter geometry. General healers, ranged and melee are distributed by\n"
+              "stable group ordinal rather than per-character coordinate records.\n"
+          )
+          replacement = marker + (
+              "The former `MaulgarFixedPositions` table has been removed. The legacy\n"
+              "`MaulgarPullCoordinator` remains only as a no-op compatibility API; it owns\n"
+              "no state, movement, Misdirection or opening logic.\n"
+          )
+          if text.count(marker) != 1:
+              raise RuntimeError("README positioning paragraph not found exactly once")
+          readme.write_text(text.replace(marker, replacement, 1), encoding="utf-8")
+          PY
+
+      - name: Verify retired path
+        run: |
+          test ! -e playerbot/strategy/raid/gruuls_lair/high_king_maulgar/MaulgarFixedPositions.h
+          ! grep -RE "MaulgarFixedPositions::|#include .*MaulgarFixedPositions" \
+            playerbot/strategy/raid/gruuls_lair/high_king_maulgar/*.cpp \
+            playerbot/strategy/raid/gruuls_lair/high_king_maulgar/*.h
+          git diff --check
+          python3 tools/raid/verify_port_scope.py
+
+      - name: Commit retired legacy path
+        run: |
+          if git diff --quiet; then
+            echo "No retirement diff produced"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Maulgar: retire fixed-coordinate pre-pull implementation"
+          git push origin HEAD:feature/gruuls-lair-phase1
