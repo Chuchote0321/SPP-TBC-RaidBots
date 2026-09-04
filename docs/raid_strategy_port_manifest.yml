@@ -1,4 +1,4 @@
-schema: 2
+schema: 3
 
 target:
   repository: Chuchote0321/SPP-TBC-RaidBots
@@ -22,6 +22,10 @@ upstream:
     repository: cmangos/playerbots
     branch: AC-strategies
     commit: a5b202b146338ac280551ce5e29158149c5e3d37
+  positioning_reference:
+    repository: mod-playerbots/mod-playerbots
+    branch: master
+    commit: 2f7d9f774987d0157c6a0d0cc08c40bec3db3945
 
 ports:
   - encounter: gruul
@@ -57,6 +61,38 @@ native:
         - raid-assistant
       command_delivery: immediate-external-event
       legacy_not_started_dispatch: disabled
+    positioning:
+      mode: encounter-relative-auto
+      reference_files:
+        - src/Ai/Raid/Gruul/GruulStrategy.cpp
+        - src/Ai/Raid/Gruul/GruulTriggers.cpp
+        - src/Ai/Raid/Gruul/GruulActions.cpp
+        - src/Ai/Raid/Gruul/GruulHelpers.cpp
+      accepted_semantics:
+        - role-driven-position-actions
+        - incremental-five-yard-movement
+        - movement-priority-over-normal-rotation
+        - target-relative-range-control
+        - collision-and-path-validation
+        - emergency-movement-override
+      local_frame:
+        origin: five-council-centroid
+        forward_axis: raid-centroid-from-council
+        side_axis: perpendicular-forward
+      deterministic_distribution:
+        method: stable-group-guid-ordinal
+        roles:
+          - healer-backline
+          - ranged-backline
+          - melee-backline
+      protected_humans:
+        movement: never-server-controlled
+        krosh-mage-envelope: 20-32yd-los
+        olm-warlock-envelope: 18-32yd-los
+      forbidden:
+        - manual-bot-pre-positioning
+        - local-absolute-coordinate-table
+        - active-maulgar-fixed-positions
     pull_topology:
       hunter_count: 3
       misdirection_count: 3

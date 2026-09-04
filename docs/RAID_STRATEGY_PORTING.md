@@ -12,6 +12,7 @@ The clean repository baseline remains `main`. Raid development is isolated from 
 | Upstream stable Playerbots | `cmangos/playerbots master` @ `d557e9873f2afbe9fd2fc8748363cfd756041d0d` |
 | Upstream experimental source | `cmangos/playerbots AC-strategies` @ `a5b202b146338ac280551ce5e29158149c5e3d37` |
 | CMaNGOS TBC build/core baseline | `cmangos/mangos-tbc master` @ `900ee47e8e4e0f6cf84f397e3df4d34cb6ac8557` |
+| Positioning reference | `mod-playerbots/mod-playerbots master` @ `2f7d9f774987d0157c6a0d0cc08c40bec3db3945` |
 
 The delivery pull request targets `feature/raid-tactics`, not `main`.
 
@@ -115,8 +116,10 @@ The command:
   Gruul's Lair instance;
 - verifies that all five council creatures and all required pull actors are
   present;
-- freezes the current manually selected pull positions while the WCL fixed
-  anchor profile remains disabled;
+- derives a stable local frame from the five council positions and the raid
+  centroid, then automatically moves bots to deterministic role slots;
+- validates generated slots against terrain height, line of sight, council
+  clearance and CMaNGOS pathfinding before movement;
 - arms exactly the three Hunter Misdirections listed above;
 - announces `MAULGAR_PULL_ARMED` only after all three core threat-redirection
   targets are confirmed.
@@ -145,6 +148,37 @@ The command triggers update the shared state immediately in `ExternalEvent()`.
 They do not wait for a normal Engine action, because the explicit preparation
 hold intentionally blocks ordinary movement and combat actions until the pull
 is released.
+
+
+## Encounter-relative automatic positioning
+
+The reference implementation separates encounter behavior into role-aware
+triggers and movement actions. For Maulgar, its dedicated tank actions move
+toward room anchors in increments of at most 5 yards; ranged safety and spread
+mechanics use target distance, collision checks and flee/move helpers. The
+upstream Maulgar anchors themselves are absolute `Position` constants, so they
+are not copied as the local portability layer.
+
+The local implementation retains the useful semantics while eliminating manual
+bot placement and active absolute XYZ dependencies:
+
+1. `raid prepare maulgar` captures a frame whose origin is the five-council
+   centroid and whose forward direction points toward the current raid centroid;
+2. each dedicated tank, Mage, Warlock and Hunter receives a target-relative
+   slot, while remaining healers/ranged/melee use stable GUID ordinal lanes;
+3. bots move in at most 5-yard steps, matching the upstream Maulgar action
+   cadence rather than issuing a new full-room path every AI tick;
+4. every generated destination receives ground-height correction, actor/target
+   LOS checks and `PathFinder` validation;
+5. the preparation state blocks ordinary rotation until all bot slots are ready;
+6. protected human Mage/Warlock specialists are never moved by server AI and
+   satisfy a target-distance/LOS envelope rather than an exact coordinate;
+7. in-combat dedicated positioning uses the same live frame and no longer
+   consults `MaulgarFixedPositions`.
+
+This is invariant under map translation and room rotation. External combat logs
+remain useful for tuning relative ranges and offsets, but are not required to
+populate a local coordinate table.
 
 ## Wipe/reset behavior
 

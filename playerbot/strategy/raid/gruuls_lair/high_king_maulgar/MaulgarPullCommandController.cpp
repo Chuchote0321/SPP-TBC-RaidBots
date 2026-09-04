@@ -4,6 +4,7 @@
 #include "playerbot/strategy/raid/common/EncounterActorResolver.h"
 #include "playerbot/strategy/raid/common/EncounterTrace.h"
 #include "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/MaulgarPullCoordinator.h"
+#include "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/MaulgarFormationManager.h"
 #include "playerbot/PlayerbotAI.h"
 #include "playerbot/strategy/AiObjectContext.h"
 
@@ -59,6 +60,9 @@ namespace
             : phase(MaulgarPullCommandPhase::Idle),
               rosterIndex(-1),
               prepareAnnounced(false),
+              positioningAnnounced(false),
+              positionsReadyAnnounced(false),
+              humanPositionAnnounced(false),
               armedAnnounced(false),
               pullAnnounced(false),
               blockedAnnounced(false),
@@ -77,6 +81,9 @@ namespace
         MaulgarPullCommandPhase phase;
         int8 rosterIndex;
         bool prepareAnnounced;
+        bool positioningAnnounced;
+        bool positionsReadyAnnounced;
+        bool humanPositionAnnounced;
         bool armedAnnounced;
         bool pullAnnounced;
         bool blockedAnnounced;
@@ -342,6 +349,158 @@ namespace
         }
 
         return true;
+    }
+
+    bool IsHumanPlayer(Player* player)
+    {
+        if (!player)
+            return false;
+
+        PlayerbotAI* playerAI = player->GetPlayerbotAI();
+        return !playerAI || playerAI->IsRealPlayer();
+    }
+
+    MaulgarPreparationRole PreparationRoleFor(
+        PlayerbotAI* ai,
+        RaidPullRoster const& roster,
+        Player* player)
+    {
+        if (!ai || !player)
+            return MaulgarPreparationRole::MeleeBackline;
+
+        const uint32 guid = player->GetObjectGuid().GetCounter();
+        if (guid == roster.feralTank)
+            return MaulgarPreparationRole::MaulgarTank;
+        if (guid == roster.protWarTank)
+            return MaulgarPreparationRole::BlindeyeTank;
+        if (guid == roster.balanceTank)
+            return MaulgarPreparationRole::KigglerTank;
+        if (guid == roster.protPalTank)
+            return MaulgarPreparationRole::FelhunterStandby;
+
+        EncounterActor mage = ResolveMage(ai, roster);
+        if (mage.IsValid() && mage.LowGuid() == guid)
+            return MaulgarPreparationRole::KroshMage;
+
+        EncounterActor warlock = ResolveWarlock(ai, roster);
+        if (warlock.IsValid() && warlock.LowGuid() == guid)
+            return MaulgarPreparationRole::OlmWarlock;
+
+        if (guid == roster.hunters[0])
+            return MaulgarPreparationRole::HunterMaulgar;
+        if (guid == roster.hunters[1])
+            return MaulgarPreparationRole::HunterBlindeye;
+        if (guid == roster.hunters[2])
+            return MaulgarPreparationRole::HunterKiggler;
+
+        if (PlayerbotAI::IsHeal(player, false))
+            return MaulgarPreparationRole::HealerBackline;
+        if (ai->IsRanged(player, false))
+            return MaulgarPreparationRole::RangedBackline;
+
+        return MaulgarPreparationRole::MeleeBackline;
+    }
+
+    bool EnsurePreparationFrame(PlayerbotAI* ai)
+    {
+        Creature* maulgar =
+            FindCreature(ai, EncounterConstants::NPC_MAULGAR);
+        Creature* krosh =
+            FindCreature(ai, EncounterConstants::NPC_KROSH);
+        Creature* olm =
+            FindCreature(ai, EncounterConstants::NPC_OLM);
+        Creature* kiggler =
+            FindCreature(ai, EncounterConstants::NPC_KIGGLER);
+        Creature* blindeye =
+            FindCreature(ai, EncounterConstants::NPC_BLINDEYE);
+
+        return MaulgarFormationManager::EnsureMaulgarFrame(
+            ai,
+            maulgar,
+            krosh,
+            olm,
+            kiggler,
+            blindeye);
+    }
+
+    bool AllFormationReady(
+        PlayerbotAI* ai,
+        RaidPullRoster const& roster)
+    {
+        if (!ai || !ai->GetBot())
+            return false;
+
+        const EncounterActor mage = ResolveMage(ai, roster);
+        const EncounterActor warlock = ResolveWarlock(ai, roster);
+
+        for (Player* member : ai->GetPlayersInGroup())
+        {
+            if (!member || !member->IsAlive() ||
+                member->GetMap() != ai->GetBot()->GetMap())
+            {
+                continue;
+            }
+
+            const uint32 guid = member->GetObjectGuid().GetCounter();
+            const bool criticalHuman =
+                (mage.IsValid() && mage.IsHuman() &&
+                 mage.LowGuid() == guid) ||
+                (warlock.IsValid() && warlock.IsHuman() &&
+                 warlock.LowGuid() == guid);
+
+            // Real players are never server-positioned. Only the protected
+            // human Mage/Warlock assignments participate in the safe-range
+            // readiness barrier; unrelated real players are ignored.
+            if (IsHumanPlayer(member) && !criticalHuman)
+                continue;
+
+            const MaulgarPreparationRole role =
+                PreparationRoleFor(ai, roster, member);
+
+            if (!MaulgarFormationManager::IsPreparationActorReady(
+                    ai,
+                    member,
+                    role))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    std::string HumanPositionPendingMessage(
+        PlayerbotAI* ai,
+        RaidPullRoster const& roster)
+    {
+        std::ostringstream details;
+        bool pending = false;
+
+        const EncounterActor mage = ResolveMage(ai, roster);
+        if (mage.IsValid() && mage.IsHuman() &&
+            !MaulgarFormationManager::IsPreparationActorReady(
+                ai,
+                mage.player,
+                MaulgarPreparationRole::KroshMage))
+        {
+            pending = true;
+            details << " KROSH_MAGE='20-32yd LOS'";
+        }
+
+        const EncounterActor warlock = ResolveWarlock(ai, roster);
+        if (warlock.IsValid() && warlock.IsHuman() &&
+            !MaulgarFormationManager::IsPreparationActorReady(
+                ai,
+                warlock.player,
+                MaulgarPreparationRole::OlmWarlock))
+        {
+            pending = true;
+            details << " OLM_WARLOCK='18-32yd LOS'";
+        }
+
+        return pending
+            ? "MAULGAR_HUMAN_POSITION_REQUIRED" + details.str()
+            : std::string();
     }
 
     bool AllMisdirectionsReady(
@@ -796,8 +955,12 @@ MaulgarPullCommandPhase MaulgarPullCommandController::GetPhase(
 
 void MaulgarPullCommandController::Reset(PlayerbotAI* ai)
 {
-    if (ai && ai->GetBot() && ai->GetBot()->GetMap())
-        s_states.erase(ai->GetBot()->GetMap());
+    if (!ai || !ai->GetBot() || !ai->GetBot()->GetMap())
+        return;
+
+    s_states.erase(ai->GetBot()->GetMap());
+    MaulgarFormationManager::Reset(ai);
+    MaulgarPullCoordinator::Reset(ai);
 }
 
 bool MaulgarPullCommandController::RequestPrepare(
@@ -825,15 +988,18 @@ bool MaulgarPullCommandController::RequestPrepare(
         state->phase = MaulgarPullCommandPhase::Preparing;
         state->rosterIndex = DetectRoster(ai);
 
-        // Explicit commands are the sole owners of NOT_STARTED.
+        // Explicit commands are the sole owners of NOT_STARTED. A
+        // fresh prepare captures a new encounter-local frame.
         MaulgarPullCoordinator::Reset(ai);
+        MaulgarFormationManager::Reset(ai);
     }
 
     Announce(
         ai,
         state->prepareAnnounced,
-        "MAULGAR_PREPARE_ACCEPTED POSITION_MODE=MANUAL "
-        "WAIT_FOR=MAULGAR_PULL_ARMED");
+        "MAULGAR_PREPARE_ACCEPTED POSITION_MODE=AUTO_RELATIVE "
+        "FRAME=COUNCIL_PLUS_RAID_CENTROID "
+        "WAIT_FOR=MAULGAR_POSITIONING_READY");
 
     return true;
 }
@@ -864,6 +1030,7 @@ bool MaulgarPullCommandController::RequestPull(
         (!duplicate && state->phase != MaulgarPullCommandPhase::Armed) ||
         (!duplicate &&
          (!PullActorsPresent(ai, *roster) ||
+          !AllFormationReady(ai, *roster) ||
           !AllMisdirectionsReady(ai, *roster))))
     {
         std::ostringstream out;
@@ -959,15 +1126,65 @@ EncounterOverrideResult MaulgarPullCommandController::Update(
     if (coreInProgress)
         state->observedInProgress = true;
 
-    // Until fixed WCL anchors are populated, the raid leader positions the
-    // actors manually. The command controller holds those current positions.
-    bot->StopMoving();
-
     if (!coreInProgress &&
         (state->phase == MaulgarPullCommandPhase::Preparing ||
          state->phase == MaulgarPullCommandPhase::Armed))
     {
+        if (!EnsurePreparationFrame(ai))
+        {
+            Announce(
+                ai,
+                state->blockedAnnounced,
+                "MAULGAR_PREPARE_BLOCKED "
+                "reason='dynamic formation frame unavailable'");
+            return EncounterOverrideResult::BlockNormal;
+        }
+
         state->blockedAnnounced = false;
+
+        Announce(
+            ai,
+            state->positioningAnnounced,
+            "MAULGAR_POSITIONING_AUTO "
+            "FRAME=COUNCIL_PLUS_RAID_CENTROID "
+            "MOVE=ROLE_RELATIVE_5YD_STEPS "
+            "VALIDATION=GROUND_LOS_PATHFINDER");
+
+        const MaulgarPreparationRole currentRole =
+            PreparationRoleFor(ai, *roster, bot);
+        MaulgarFormationManager::MaintainPreparationPosition(
+            ai,
+            currentRole);
+
+        if (!AllFormationReady(ai, *roster))
+        {
+            state->phase = MaulgarPullCommandPhase::Preparing;
+            state->armedAnnounced = false;
+            state->positionsReadyAnnounced = false;
+
+            const std::string humanPending =
+                HumanPositionPendingMessage(ai, *roster);
+            if (!humanPending.empty())
+            {
+                Announce(
+                    ai,
+                    state->humanPositionAnnounced,
+                    humanPending);
+            }
+            else
+            {
+                state->humanPositionAnnounced = false;
+            }
+
+            return EncounterOverrideResult::BlockNormal;
+        }
+
+        state->humanPositionAnnounced = false;
+        Announce(
+            ai,
+            state->positionsReadyAnnounced,
+            "MAULGAR_POSITIONING_READY "
+            "BOTS=AUTO_POSITIONED HUMAN_SPECIALISTS=SAFE_RANGE");
 
         EncounterOverrideResult armResult =
             ArmCurrentHunter(ai, *roster);
@@ -982,6 +1199,7 @@ EncounterOverrideResult MaulgarPullCommandController::Update(
                 ai,
                 state->armedAnnounced,
                 "MAULGAR_PULL_ARMED "
+                "POSITIONING=READY "
                 "MD_MAULGAR=READY "
                 "MD_BLINDEYE=READY "
                 "MD_KIGGLER=READY "
@@ -1008,6 +1226,10 @@ EncounterOverrideResult MaulgarPullCommandController::Update(
 
         return EncounterOverrideResult::NotHandled;
     }
+
+    // Hold the completed formation while releasing only the
+    // synchronized Mage/Hunter/Warlock opening.
+    bot->StopMoving();
 
     EncounterActor mage = ResolveMage(ai, *roster);
 

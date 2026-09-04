@@ -57,6 +57,10 @@ REQUIRED_MANIFEST_TOKENS = (
     "hunter_count: 3",
     "misdirection_count: 3",
     "automatic-not-started-pull",
+    "2f7d9f774987d0157c6a0d0cc08c40bec3db3945",
+    "mode: encounter-relative-auto",
+    "manual-bot-pre-positioning",
+    "local-absolute-coordinate-table",
 )
 
 SHA40 = re.compile(r"^[0-9a-f]{40}$")
@@ -167,6 +171,34 @@ def main() -> int:
         ),
     )
 
+
+    formation = read(
+        "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
+        "MaulgarFormationManager.cpp"
+    )
+    require_tokens(
+        errors,
+        "encounter-relative Maulgar positioning",
+        formation,
+        (
+            "source=COUNCIL_PLUS_RAID_CENTROID",
+            "PREP_MOVE_STEP = 5.0f",
+            "UpdateAllowedPositionZ",
+            "PathFinder path(actor)",
+            "PATHFIND_NOPATH",
+            "MaintainPreparationPosition",
+            "IsPreparationActorReady",
+            "state->maulgarAnchor",
+            "RelativeTargetSlot(*state, krosh",
+            "RelativeTargetSlot(*state, kiggler",
+            "RelativeTargetSlot(*state, olm",
+        ),
+    )
+    if "MaulgarFixedPositions::" in formation:
+        errors.append(
+            "active Maulgar formation still depends on MaulgarFixedPositions"
+        )
+
     controller = read(
         "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
         "MaulgarPullCommandController.cpp"
@@ -181,6 +213,10 @@ def main() -> int:
             "MaulgarPullCommandPhase::Armed",
             "MaulgarPullCommandPhase::PullRequested",
             "AllMisdirectionsReady",
+            "AllFormationReady",
+            "MaulgarFormationManager::MaintainPreparationPosition",
+            "POSITION_MODE=AUTO_RELATIVE",
+            "GROUND_LOS_PATHFINDER",
             "COMMAND_MD_ARM",
             "COMMAND_MD_REARM",
             "COMMAND_HUNTER_OPEN",
@@ -303,6 +339,9 @@ def main() -> int:
             "/ra raid pull maulgar",
             "legacy encounter router is disabled",
             "immediately in `ExternalEvent()`",
+            "Encounter-relative automatic positioning",
+            "at most 5-yard steps",
+            "eliminating manual",
         ),
     )
 
@@ -322,6 +361,9 @@ def main() -> int:
     print("MAULGAR_PULL_COMMANDS=PREPARE_THEN_PULL")
     print("MAULGAR_NOT_STARTED_AUTOPULL=DISABLED")
     print("COMMAND_DELIVERY=IMMEDIATE_EXTERNAL_EVENT")
+    print("MAULGAR_POSITIONING=ENCOUNTER_RELATIVE_AUTO")
+    print("ABSOLUTE_COORDINATE_DEPENDENCY=NONE")
+    print("POSITION_VALIDATION=GROUND_LOS_PATHFINDER")
     return 0
 
 
