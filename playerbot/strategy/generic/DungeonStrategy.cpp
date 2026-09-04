@@ -6,7 +6,8 @@ using namespace ai;
 
 void DungeonStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
 {
-    // Add this combat triggers in case the bot gets summoned into the dungeon and goes straight into combat
+    // Add these combat triggers in case the bot gets summoned into the
+    // dungeon and goes straight into combat.
     triggers.push_back(new TriggerNode(
         "enter onyxia's lair",
         NextAction::array(0, new NextAction("enable onyxia's lair strategy", 100.0f), NULL)));
@@ -22,7 +23,11 @@ void DungeonStrategy::InitCombatTriggers(std::list<TriggerNode*>& triggers)
     triggers.push_back(new TriggerNode(
         "enter karazhan",
         NextAction::array(0, new NextAction("enable karazhan strategy", 100.0f), NULL)));
-    
+
+    triggers.push_back(new TriggerNode(
+        "enter gruul's lair",
+        NextAction::array(0, new NextAction("enable gruul's lair strategy", 100.0f), NULL)));
+
     triggers.push_back(new TriggerNode(
         "enter mechanar",
         NextAction::array(0, new NextAction("enable mechanar strategy", 100.0f), NULL)));
@@ -61,6 +66,14 @@ void DungeonStrategy::InitNonCombatTriggers(std::list<TriggerNode*>& triggers)
     triggers.push_back(new TriggerNode(
         "leave karazhan",
         NextAction::array(0, new NextAction("disable karazhan strategy", 100.0f), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "enter gruul's lair",
+        NextAction::array(0, new NextAction("enable gruul's lair strategy", 100.0f), NULL)));
+
+    triggers.push_back(new TriggerNode(
+        "leave gruul's lair",
+        NextAction::array(0, new NextAction("disable gruul's lair strategy", 100.0f), NULL)));
 
     triggers.push_back(new TriggerNode(
         "enter mechanar",

@@ -2,7 +2,6 @@
 #include "playerbot/strategy/raid/gruuls_lair/GruulsLairTactics.h"
 #include "playerbot/strategy/raid/common/EncounterTrace.h"
 #include "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/HighKingMaulgarEncounter.h"
-#include "playerbot/strategy/raid/gruuls_lair/gruul/GruulEncounter.h"
 #include "playerbot/PlayerbotAI.h"
 
 using namespace ai;
@@ -22,15 +21,9 @@ EncounterOverrideResult GruulsLairTactics::Update(PlayerbotAI* ai)
         "MAP_ENTER",
         "raid=GRUULS_LAIR");
 
-    EncounterOverrideResult result =
-        HighKingMaulgarEncounter::Update(ai);
-
-    if (result != EncounterOverrideResult::NotHandled)
-        return result;
-
-    result = GruulEncounter::Update(ai);
-    if (result != EncounterOverrideResult::NotHandled)
-        return result;
-
-    return EncounterOverrideResult::NotHandled;
+    // Maulgar keeps its explicit command controller and specialized encounter
+    // overlay. Gruul is deliberately not dispatched here: the dragonkiller
+    // encounter now runs through the native Strategy/Trigger/Action/Multiplier
+    // engine so mandatory movement does not skip the whole class rotation.
+    return HighKingMaulgarEncounter::Update(ai);
 }

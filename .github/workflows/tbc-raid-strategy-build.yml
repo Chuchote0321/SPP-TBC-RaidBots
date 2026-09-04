@@ -21,7 +21,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Verify selective-port contract
-        run: python3 tools/raid/verify_port_scope.py
+        run: |
+          python3 tools/raid/verify_port_scope.py
+          python3 tools/raid/verify_gruul_native_strategy.py
 
   tbc-playerbots:
     runs-on: ubuntu-22.04

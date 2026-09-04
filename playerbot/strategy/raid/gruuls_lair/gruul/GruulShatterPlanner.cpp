@@ -3,6 +3,7 @@
 #include "playerbot/strategy/raid/common/EncounterTrace.h"
 #include "playerbot/PlayerbotAI.h"
 
+#include "MotionGenerators/PathFinder.h"
 #include "Spells/Spell.h"
 
 #include <algorithm>
@@ -28,8 +29,9 @@ namespace
     constexpr float MOVE_TOLERANCE = 1.5f;
     constexpr float MIN_GRUUL_RADIUS = 9.0f;
     constexpr float MAX_GRUUL_RADIUS = 48.0f;
+    constexpr float PATH_LIMIT = 80.0f;
 
-    constexpr uint32 SHATTER_MOVE_ID_BASE = 0x47525500; // "GRU\0"
+    constexpr uint32 SHATTER_MOVE_ID_BASE = 0x47525300; // "GRS\0"
 
     struct Vec2
     {
@@ -96,18 +98,26 @@ namespace
 
         Player* bot = ai->GetBot();
 
-        // Keep the trigger compatible with both the upstream experimental
-        // strategy and the current CMaNGOS ScriptDevAI spell sequence.
         if (bot->HasAura(EncounterConstants::SPELL_GRUUL_GROUND_SLAM) ||
-            bot->HasAura(EncounterConstants::SPELL_GRUUL_GROUND_SLAM_TRIGGER) ||
-            bot->HasAura(EncounterConstants::SPELL_GRUUL_GROUND_SLAM_DUMMY) ||
-            bot->HasAura(EncounterConstants::SPELL_GRUUL_STONED))
+            bot->HasAura(
+                EncounterConstants::SPELL_GRUUL_GROUND_SLAM_TRIGGER) ||
+            bot->HasAura(
+                EncounterConstants::SPELL_GRUUL_GROUND_SLAM_DUMMY) ||
+            bot->HasAura(EncounterConstants::SPELL_GRUUL_STONED) ||
+            bot->HasAura(EncounterConstants::SPELL_GRUUL_SHATTER) ||
+            bot->HasAura(EncounterConstants::SPELL_GRUUL_SHATTER_EFFECT))
         {
             return true;
         }
 
-        return gruul && IsShatterSpell(
-            gruul->GetCurrentSpell(CURRENT_GENERIC_SPELL));
+        return gruul &&
+            (gruul->HasAura(EncounterConstants::SPELL_GRUUL_GROUND_SLAM) ||
+             gruul->HasAura(
+                 EncounterConstants::SPELL_GRUUL_GROUND_SLAM_TRIGGER) ||
+             gruul->HasAura(
+                 EncounterConstants::SPELL_GRUUL_GROUND_SLAM_DUMMY) ||
+             IsShatterSpell(
+                 gruul->GetCurrentSpell(CURRENT_GENERIC_SPELL)));
     }
 
     std::vector<Player*> LiveRaidMembers(PlayerbotAI* ai)
@@ -118,9 +128,7 @@ namespace
             return result;
 
         Map* map = ai->GetBot()->GetMap();
-        const std::vector<Player*> players = ai->GetPlayersInGroup();
-
-        for (Player* player : players)
+        for (Player* player : ai->GetPlayersInGroup())
         {
             if (!player || !player->IsAlive() || player->GetMap() != map)
                 continue;
@@ -158,6 +166,43 @@ namespace
             s_shatterSlots.erase(mapItr);
     }
 
+    bool ReachableCandidate(
+        Player* bot,
+        Creature* gruul,
+        float x,
+        float y,
+        float& z)
+    {
+        if (!bot)
+            return false;
+
+        bot->UpdateAllowedPositionZ(x, y, z);
+
+        if (!bot->IsWithinLOS(x, y, z))
+            return false;
+
+        if (gruul && !gruul->IsWithinLOS(x, y, z))
+            return false;
+
+        PathFinder path(bot);
+        path.setPathLengthLimit(PATH_LIMIT);
+        path.calculate(x, y, z, false, false);
+
+        const uint32 type = static_cast<uint32>(path.getPathType());
+        if (type & static_cast<uint32>(PATHFIND_NOPATH))
+            return false;
+        if (type & static_cast<uint32>(PATHFIND_SHORTCUT))
+            return false;
+        if (type & static_cast<uint32>(PATHFIND_INCOMPLETE))
+            return false;
+        if (type & static_cast<uint32>(PATHFIND_SHORT))
+            return false;
+
+        return type &
+            (static_cast<uint32>(PATHFIND_NORMAL) |
+             static_cast<uint32>(PATHFIND_NOT_USING_PATH));
+    }
+
     float MinimumDistanceToRaid(
         PlayerbotAI* ai,
         Vec2 const& candidate,
@@ -171,7 +216,9 @@ namespace
             if (player->GetObjectGuid().GetCounter() == selfGuid)
                 continue;
 
-            minimum = std::min(minimum, Distance(candidate, Position2(player)));
+            minimum = std::min(
+                minimum,
+                Distance(candidate, Position2(player)));
         }
 
         if (includeReservedSlots &&
@@ -187,12 +234,13 @@ namespace
 
                     minimum = std::min(
                         minimum,
-                        Distance(candidate, Vec2(item.second.x, item.second.y)));
+                        Distance(
+                            candidate,
+                            Vec2(item.second.x, item.second.y)));
                 }
             }
         }
 
-        // A one-player group has no Shatter collision partner.
         return minimum == std::numeric_limits<float>::max()
             ? 999.0f
             : minimum;
@@ -216,7 +264,8 @@ namespace
             if (player->GetObjectGuid().GetCounter() == selfGuid)
                 continue;
 
-            const float distance = Distance(candidate, Position2(player));
+            const float distance =
+                Distance(candidate, Position2(player));
             if (distance < DESIRED_SEPARATION)
             {
                 const float deficit = DESIRED_SEPARATION - distance;
@@ -240,7 +289,8 @@ namespace
 
                     if (distance < DESIRED_SEPARATION)
                     {
-                        const float deficit = DESIRED_SEPARATION - distance;
+                        const float deficit =
+                            DESIRED_SEPARATION - distance;
                         crowdingPenalty += deficit * deficit;
                     }
                 }
@@ -254,33 +304,35 @@ namespace
 
         float arenaPenalty = 0.0f;
         if (gruulRadius < MIN_GRUUL_RADIUS)
-            arenaPenalty += (MIN_GRUUL_RADIUS - gruulRadius) * 12.0f;
+            arenaPenalty +=
+                (MIN_GRUUL_RADIUS - gruulRadius) * 12.0f;
         if (gruulRadius > MAX_GRUUL_RADIUS)
-            arenaPenalty += (gruulRadius - MAX_GRUUL_RADIUS) * 12.0f;
+            arenaPenalty +=
+                (gruulRadius - MAX_GRUUL_RADIUS) * 12.0f;
 
-        // Max-min separation is the primary objective. The quadratic crowding
-        // term prevents a candidate from looking good merely because one
-        // neighbour is far away while another is still dangerously close.
-        return std::min(minimumOut, DESIRED_SEPARATION + 8.0f) * 12.0f
-             - crowdingPenalty * 1.8f
-             - travelDistance * 0.35f
-             - arenaPenalty;
+        return
+            std::min(
+                minimumOut,
+                DESIRED_SEPARATION + 8.0f) * 12.0f
+            - crowdingPenalty * 1.8f
+            - travelDistance * 0.35f
+            - arenaPenalty;
     }
 
     PlannedSlot BuildPlan(PlayerbotAI* ai, Creature* gruul)
     {
         Player* bot = ai->GetBot();
-        const uint32 selfGuid = bot->GetObjectGuid().GetCounter();
+        const uint32 selfGuid =
+            bot->GetObjectGuid().GetCounter();
         const Vec2 current = Position2(bot);
 
         Vec2 best = current;
+        float bestZ = bot->GetPositionZ();
         float bestMinimum = MinimumDistanceToRaid(
             ai, current, selfGuid, true);
         float bestScore = CandidateScore(
             ai, gruul, current, current, selfGuid, bestMinimum);
 
-        // The GUID phase removes directional symmetry. Reservations make
-        // already-planned slots visible to later bots in the same map.
         const float phase =
             (float(selfGuid % 97u) / 97.0f) * TWO_PI;
 
@@ -289,14 +341,29 @@ namespace
 
         for (float radius : radii)
         {
-            for (uint32 index = 0; index < directionCount; ++index)
+            for (uint32 index = 0;
+                 index < directionCount;
+                 ++index)
             {
                 const float angle =
-                    phase + TWO_PI * float(index) / float(directionCount);
+                    phase +
+                    TWO_PI * float(index) /
+                        float(directionCount);
 
                 Vec2 candidate(
                     current.x + std::cos(angle) * radius,
                     current.y + std::sin(angle) * radius);
+                float candidateZ = bot->GetPositionZ();
+
+                if (!ReachableCandidate(
+                        bot,
+                        gruul,
+                        candidate.x,
+                        candidate.y,
+                        candidateZ))
+                {
+                    continue;
+                }
 
                 float candidateMinimum = 0.0f;
                 const float score = CandidateScore(
@@ -311,6 +378,7 @@ namespace
                 {
                     bestScore = score;
                     best = candidate;
+                    bestZ = candidateZ;
                     bestMinimum = candidateMinimum;
                 }
             }
@@ -319,12 +387,13 @@ namespace
         return PlannedSlot(
             best.x,
             best.y,
-            bot->GetPositionZ(),
+            bestZ,
             bestMinimum);
     }
 }
 
-float GruulShatterPlanner::CurrentMinimumSeparation(PlayerbotAI* ai)
+float GruulShatterPlanner::CurrentMinimumSeparation(
+    PlayerbotAI* ai)
 {
     if (!ai || !ai->GetBot())
         return 999.0f;
@@ -346,7 +415,8 @@ void GruulShatterPlanner::Reset(PlayerbotAI* ai)
     if (mapItr == s_shatterSlots.end())
         return;
 
-    mapItr->second.erase(ai->GetBot()->GetObjectGuid().GetCounter());
+    mapItr->second.erase(
+        ai->GetBot()->GetObjectGuid().GetCounter());
     if (mapItr->second.empty())
         s_shatterSlots.erase(mapItr);
 }
@@ -369,24 +439,30 @@ EncounterOverrideResult GruulShatterPlanner::Update(
     PruneSlots(ai);
 
     Map* map = bot->GetMap();
-    const uint32 selfGuid = bot->GetObjectGuid().GetCounter();
+    const uint32 selfGuid =
+        bot->GetObjectGuid().GetCounter();
     SlotMap& slots = s_shatterSlots[map];
 
     auto slotItr = slots.find(selfGuid);
     if (slotItr == slots.end())
     {
-        const float currentMinimum = CurrentMinimumSeparation(ai);
+        const float currentMinimum =
+            CurrentMinimumSeparation(ai);
         const PlannedSlot plan = BuildPlan(ai, gruul);
-        slotItr = slots.insert(std::make_pair(selfGuid, plan)).first;
+        slotItr =
+            slots.insert(std::make_pair(selfGuid, plan)).first;
 
         EncounterTrace::Event(
             ai,
             "GRUUL",
             "SHATTER_PLAN",
-            "currentMin=%.2f plannedMin=%.2f acceptable=%u target=(%.2f,%.2f,%.2f)",
+            "currentMin=%.2f plannedMin=%.2f acceptable=%u "
+            "target=(%.2f,%.2f,%.2f)",
             currentMinimum,
             plan.predictedMinimum,
-            plan.predictedMinimum >= ACCEPTABLE_SEPARATION ? 1u : 0u,
+            plan.predictedMinimum >= ACCEPTABLE_SEPARATION
+                ? 1u
+                : 0u,
             plan.x,
             plan.y,
             plan.z);
@@ -394,8 +470,9 @@ EncounterOverrideResult GruulShatterPlanner::Update(
 
     PlannedSlot const& slot = slotItr->second;
 
-    // Once Stoned has landed the core will reject movement. Keep the encounter
-    // overlay authoritative so Normal Rotation cannot collapse the formation.
+    // Stoned blocks movement at the core level. The native Multiplier keeps
+    // generic reach/movement actions suppressed without blocking unrelated
+    // instant casts and defensives.
     if (bot->HasAura(EncounterConstants::SPELL_GRUUL_STONED))
         return EncounterOverrideResult::BlockNormal;
 
@@ -413,5 +490,5 @@ EncounterOverrideResult GruulShatterPlanner::Update(
         FORCED_MOVEMENT_RUN,
         true);
 
-    return EncounterOverrideResult::BlockNormal;
+    return EncounterOverrideResult::Handled;
 }
