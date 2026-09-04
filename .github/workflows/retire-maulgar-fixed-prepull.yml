@@ -123,11 +123,7 @@ jobs:
               "active topology fields",
           )
 
-          marker = '''    formation = read(
-              "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
-              "MaulgarFormationManager.cpp"
-          )
-          '''
+          marker = "    formation = read(\n"
           compatibility_check = '''    compatibility = read(
               "playerbot/strategy/raid/gruuls_lair/high_king_maulgar/"
               "MaulgarPullCoordinator.cpp"
