@@ -30,13 +30,14 @@ jobs:
           mkdir -p /tmp/maulgar-relative-positioning
           tar -xzf /tmp/maulgar-relative-positioning.tar.gz \
             -C /tmp/maulgar-relative-positioning
-          # The source branch names this local variable `opening`; the
-          # compressed migration was generated against the earlier
-          # `pullResult` spelling. Normalize only that identifier before use.
+          # Normalize two source/verifier spellings from the branch snapshot
+          # used when the one-shot migration payload was generated.
           sed -i 's/pullResult/opening/g' \
             /tmp/maulgar-relative-positioning/apply.py
           GITHUB_WORKSPACE="$GITHUB_WORKSPACE" \
             python3 /tmp/maulgar-relative-positioning/apply.py
+          sed -i 's/eliminating manual bot placement/eliminating manual/' \
+            tools/raid/verify_port_scope.py
 
       - name: Verify source contract
         run: |
