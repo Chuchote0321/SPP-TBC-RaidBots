@@ -1,0 +1,90 @@
+schema: 1
+
+target:
+  repository: Chuchote0321/SPP-TBC-RaidBots
+  clean_branch: main
+  clean_branch_policy: untouched
+  stacked_base: feature/gruuls-lair-phase1
+  delivery_branch: feature/karazhan-phase1
+
+upstream:
+  repository: mod-playerbots/mod-playerbots
+  branch: master
+  commit: b949b50bfcdd4fab937781bac2d7765e39330e4b
+  reviewed_directory: src/Ai/Raid/Kara
+  reviewed_files:
+    - KaraStrategy.cpp
+    - KaraTriggers.cpp
+    - KaraActions.cpp
+    - KaraMultipliers.cpp
+    - KaraHelpers.cpp
+    - KaraHelpers.h
+    - KaraActionContext.h
+    - KaraTriggerContext.h
+
+coverage_audit:
+  upstream:
+    - attumen
+    - moroes
+    - maiden-of-virtue
+    - big-bad-wolf
+    - romulo-and-julianne
+    - wizard-of-oz
+    - curator
+    - terestian-illhoof
+    - shade-of-aran
+    - netherspite
+    - prince-malchezaar
+    - nightbane
+  upstream_missing:
+    - chess-event
+  local_before_phase1:
+    - netherspite-partial-shortcut
+    - prince-infernal-proximity-only
+
+phase1:
+  bosses:
+    - attumen-the-huntsman
+    - moroes
+    - maiden-of-virtue
+  mode: file-by-file-semantics
+  active_strategy: karazhan
+  accepted:
+    - attumen-phase-routing
+    - attumen-main-and-assist-tank-targets
+    - attumen-five-second-dps-delay
+    - attumen-rear-stack
+    - moroes-guest-priority
+    - moroes-skull-mark
+    - maiden-tank-position
+    - maiden-repentance-healer-break
+    - maiden-ranged-distribution
+    - maiden-grounding-totem
+    - fine-grained-action-multipliers
+  local_adaptations:
+    - dynamic-tank-selection-by-health-and-guid
+    - target-respawn-plus-raid-centroid-position-frame
+    - deterministic-guid-ordered-ranged-slots
+    - terrain-los-pathfinder-validation
+    - five-yard-incremental-movement
+  rejected:
+    - whole-upstream-branch-merge
+    - copied-karazhan-absolute-coordinate-table
+    - replacement-of-tbc-class-rotations
+    - direct-npc-teleport
+    - forced-human-movement
+
+deferred:
+  phase2:
+    - opera-event
+    - curator
+  phase3:
+    - terestian-illhoof
+    - shade-of-aran
+  phase4:
+    - netherspite-real-beam-positioning
+    - prince-malchezaar-complete
+  phase5:
+    - nightbane
+  separate_design:
+    - chess-event
