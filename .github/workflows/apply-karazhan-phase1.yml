@@ -45,7 +45,6 @@ jobs:
 
           echo "0f4c8267e39bade8ac3e6a49bd170ac80af75d9c54a22b6f7e2edac1d50e494b  /tmp/karazhan_phase1_payload.tar.gz" \
             | sha256sum --check --strict
-          tar -tzf /tmp/karazhan_phase1_payload.tar.gz
           tar -xzf /tmp/karazhan_phase1_payload.tar.gz -C .
 
       - name: Verify exact port contracts
@@ -58,15 +57,18 @@ jobs:
           git diff --check
           test -z "$(find . -type d -name __pycache__ -o -type f -name '*.pyc')"
 
-      - name: Commit phase-one source and retire applicator
+      - name: Commit phase-one source only
         run: |
           set -euo pipefail
-          rm -f .github/workflows/apply-karazhan-phase1.yml
+          # GITHUB_TOKEN cannot create/update workflow files. Restore the existing
+          # workflow tree and leave this applicator unchanged; the authorized
+          # GitHub connector removes it and updates the build workflow afterward.
+          git checkout -- .github/workflows/tbc-raid-strategy-build.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
+          git add docs playerbot tools/raid/verify_karazhan_phase1.py
           if git diff --cached --quiet; then
-            echo "No Karazhan payload diff produced" >&2
+            echo "No Karazhan source diff produced" >&2
             exit 1
           fi
           git commit -m "Karazhan: port Attumen, Moroes and Maiden strategies"
