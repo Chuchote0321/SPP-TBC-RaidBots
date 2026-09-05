@@ -1,4 +1,3 @@
-
 #include "playerbot/playerbot.h"
 #include "Action.h"
 #include "AiObjectContext.h"
@@ -14,6 +13,7 @@
 #include "values/SharedValueContext.h"
 #include "raid/gruuls_lair/high_king_maulgar/MaulgarPullCommandContext.h"
 #include "raid/gruuls_lair/gruul/GruulAiObjectContext.h"
+#include "raid/karazhan/KarazhanPhase1Context.h"
 
 using namespace ai;
 
@@ -30,12 +30,14 @@ AiObjectContext::AiObjectContext(PlayerbotAI* ai) : PlayerbotAIAware(ai)
     actionContexts.Add(new ChatActionContext());
     actionContexts.Add(new WorldPacketActionContext());
     actionContexts.Add(new GruulsLairActionContext());
+    actionContexts.Add(new KarazhanPhase1ActionContext());
 
     triggerContexts.Add(new TriggerContext());
     triggerContexts.Add(new ChatTriggerContext());
     triggerContexts.Add(new WorldPacketTriggerContext());
     triggerContexts.Add(new MaulgarPullCommandTriggerContext());
     triggerContexts.Add(new GruulsLairTriggerContext());
+    triggerContexts.Add(new KarazhanPhase1TriggerContext());
 
     valueContexts.Add(new ValueContext());
 
@@ -79,9 +81,7 @@ void AiObjectContext::ClearExpiredValues(std::string findName, uint32 interval)
     }
 
     for (const auto& name : namesToErase)
-    {
         valueContexts.Erase(name);
-    }
 }
 
 std::string AiObjectContext::FormatValues(std::string findName)
@@ -143,7 +143,6 @@ std::list<std::string> AiObjectContext::Save()
         std::string name = *i;
         std::ostringstream out;
         out << name;
-
         out << ">" << data;
         result.push_back(out.str());
     }
