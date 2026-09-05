@@ -24,6 +24,7 @@ jobs:
         run: |
           python3 tools/raid/verify_port_scope.py
           python3 tools/raid/verify_gruul_native_strategy.py
+          python3 tools/raid/verify_karazhan_phase1.py
 
   tbc-playerbots:
     runs-on: ubuntu-22.04
